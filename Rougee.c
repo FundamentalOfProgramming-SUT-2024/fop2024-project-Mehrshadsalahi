@@ -3,19 +3,8 @@
 #include <unistd.h>
 #include <time.h>
 #include <string.h>
+#include "GameStart.h"
 
-typedef struct {
-    int x;
-    int y;
-}point;
-typedef struct {
-    point C;
-    int color;
-    int key;
-    int food;
-    int gold;
-    int difficulty;
-}player;
 
 
 void settings(int *color,int *difficulty){
@@ -98,6 +87,11 @@ void settings(int *color,int *difficulty){
 void PreGameMenu(char name[],char password[]){
     clear();
     player character;
+    character.color=1;
+    character.difficulty=2;
+    character.gold=0;
+    character.food=0;
+    character.key=0;
     noecho();
     curs_set(FALSE);
     int choice=1;
@@ -135,7 +129,17 @@ void PreGameMenu(char name[],char password[]){
             choice-=1;
         if(input=='\n'){
             if(choice==1){
-                //god save us
+                clear();
+                attron(A_BOLD|A_UNDERLINE|COLOR_PAIR(2));
+                mvprintw(1,1,"PLEASE MAXIMIZE YOUR TERMINAL TO ENSURE YOU HAVE THE PROPER EXPERIENCE");
+                refresh();
+                attroff(A_BOLD|A_UNDERLINE|COLOR_PAIR(2));
+                mvprintw(2,1,"game will begin in 5 seconds");
+                refresh();
+                sleep(5);
+                clear();
+                refresh();
+                BEGIN(character);
             }
             if(choice==2){
 
@@ -402,7 +406,8 @@ void login_menu(){
 }
 int main() {
     initscr();
-
+    srand(time(NULL)); 
+    cbreak();
     keypad(stdscr, TRUE);
     if (has_colors()){
         start_color();
