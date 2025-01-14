@@ -42,6 +42,39 @@ int randit(int a,int b){
     return ans;
 }
 
+
+
+void generatefoodgoldblackgold(char board[36][71],room rooms[],int room_count){
+    int chancefood,chancegold,chanceblackgold;
+    for(int i=0;i<room_count;i++){
+        chancefood=randit(1,10);
+        if(chancefood!=7)
+            continue;
+        else{
+            int lengran=randit(2,rooms[i].length-4),widran=randit(2,rooms[i].length-4);
+            board[rooms[i].starty+widran][rooms[i].startx+lengran]='F';
+        }
+    }
+    for(int i=0;i<room_count;i++){
+        chancegold=randit(1,20);
+        if(chancegold!=7)
+            continue;
+        else{
+            int lengran=randit(2,rooms[i].length-4),widran=randit(2,rooms[i].length-4);
+            board[rooms[i].starty+widran][rooms[i].startx+lengran]='g';
+        }
+    }
+    for(int i=0;i<room_count;i++){
+        chanceblackgold=randit(1,40);
+        if(chanceblackgold!=7)
+            continue;
+        else{
+            int lengran=randit(2,rooms[i].length-4),widran=randit(2,rooms[i].length-4);
+            board[rooms[i].starty+widran][rooms[i].startx+lengran]='G';
+        }
+    }
+}
+
 void spawnstair(char board[36][71],room rooms[8],int room_count){       // 1   2
     int ran=randit(1,room_count-1),rancorner=randit(1,4);               // 3   4 
     room ranroom=rooms[ran];
@@ -326,6 +359,7 @@ void savegame(room rooms[],player character,char board[36][71],int visible[36][7
 
 
 void drawcharacter(char board[36][71],int color,int x , int y){
+    attron(A_BOLD);
     board[y][x]='P';
     if(color==2)
         attron(COLOR_PAIR(2));
@@ -336,6 +370,7 @@ void drawcharacter(char board[36][71],int color,int x , int y){
         attroff(COLOR_PAIR(2));
     if(color==3)
         attroff(COLOR_PAIR(3));
+    attroff(A_BOLD);
     refresh();
 }
 
@@ -488,6 +523,23 @@ void lightupplayersroom(int visible[36][71],int x,int y,room rooms[8],int room_c
 
 
 
+void showstats(player character){
+    attron(A_BOLD);
+    mvprintw(1,80,"Game Difficulty:%d |1=easy|2=normal|3=hard|",character.difficulty);
+    mvprintw(2,80,"FOOD:%d",character.food);
+    mvprintw(3,80,"HEALTH:%d",character.health);
+    mvprintw(4,80,"KEYS:%d",character.key);
+    mvprintw(5,80,"BROKEN KEYS:%d",character.broken_key);
+    mvprintw(6,80,"GOLD:%d",character.gold);
+    attroff(A_BOLD);
+ //   mvprintw(7,37,"Equipped Weapon:%s",character.eqippedW);
+}
+
+
+
+
+
+
 
 void nextfloor(int room_count,int floor,room rooms[8],player character,char name[]){
     char board[36][71];
@@ -551,6 +603,9 @@ void nextfloor(int room_count,int floor,room rooms[8],player character,char name
     refresh();
     play_game(rooms,character,board,visible,room_count,floor+1,name);
 }
+
+
+
 
 
 
@@ -1118,7 +1173,7 @@ void play_game(room rooms[8],player character,char board[36][71],int visible[36]
 
 
 
-
+    showstats(character);
     lightupplayer(visible,character.point.x,character.point.y);
     if(wasitadoor){
         lightupplayersroom(visible,character.point.x,character.point.y,rooms,room_count);
