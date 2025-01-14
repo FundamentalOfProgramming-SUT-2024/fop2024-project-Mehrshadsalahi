@@ -179,7 +179,8 @@ void buildcorridorLEFTTORIGHT(char board[36][71],point door1,point door2){
 
 
 void spawncorridors(int room_count,room rooms[8],char board[36][71]){
-    for(int Q=0;Q<3;Q++){
+    int runtime=3;
+    for(int Q=0;Q<runtime;Q++){
     int i=0;
     int attempts=10000;
     while(i!=room_count){
@@ -458,6 +459,10 @@ void drawmap(char board[36][71],int visible[36][71]) {
         for (int j=0; j<70; j++) {
     for (int i=0;i<35;i++) {
             if(visible[i][j]){
+            if(board[i][j]=='F')
+                attron(COLOR_PAIR(3));
+            if(board[i][j]== 'g'  || board[i][j]=='G')
+                attron(COLOR_PAIR(5));
             if(board[i][j]=='M' || board[i][j]=='D' || board[i][j]=='W'  || board[i][j]=='N'  || board[i][j]=='S' )
                 attron(COLOR_PAIR(2));
             if(board[i][j]=='d' || board[i][j]=='s' || board[i][j]=='h')
@@ -467,6 +472,10 @@ void drawmap(char board[36][71],int visible[36][71]) {
                 attroff(COLOR_PAIR(2));
             if(board[i][j]=='d' || board[i][j]=='s' || board[i][j]=='h')
                 attroff(COLOR_PAIR(2));
+            if(board[i][j]== 'g'  || board[i][j]=='G')
+                attroff(COLOR_PAIR(5));
+            if(board[i][j]=='F')
+                attroff(COLOR_PAIR(3));
             }
         }
     }
@@ -477,6 +486,10 @@ void drawmapfalse(char board[36][71]) {
     clear();
         for (int j = 0; j < 70; j++) {
     for (int i=0;i<35;i++) {
+            if(board[i][j]=='F')
+                attron(COLOR_PAIR(3));
+            if(board[i][j]== 'g'  || board[i][j]=='G')
+                attron(COLOR_PAIR(5));
             if(board[i][j]=='M' || board[i][j]=='D' || board[i][j]=='W'  || board[i][j]=='N'  || board[i][j]=='S' )
                 attron(COLOR_PAIR(2));
             if(board[i][j]=='d' || board[i][j]=='s' || board[i][j]=='h')
@@ -486,6 +499,10 @@ void drawmapfalse(char board[36][71]) {
                 attroff(COLOR_PAIR(2));
             if(board[i][j]=='d' || board[i][j]=='s' || board[i][j]=='h')
                 attroff(COLOR_PAIR(2));
+            if(board[i][j]== 'g'  || board[i][j]=='G')
+                attroff(COLOR_PAIR(5));
+            if(board[i][j]=='F')
+                attroff(COLOR_PAIR(3));
         }
     }
     refresh();
@@ -593,9 +610,11 @@ void nextfloor(int room_count,int floor,room rooms[8],player character,char name
             q--;
         }
     }
+    placeroom(board,lastroom.startx,lastroom.starty,lastroom.length,lastroom.width);
+    rooms[0]=lastroom;
     visiblesetup(visible);
     lightuproom(lastroom,visible);
-//    spawncorridors(room_count,rooms,board);
+    spawncorridors(room_count,rooms,board);
     generateweaponandspell(board,rooms,room_count);
     spawnstair(board,rooms,room_count);
     drawmap(board,visible);
@@ -617,6 +636,7 @@ void play_game(room rooms[8],player character,char board[36][71],int visible[36]
     int ismaptrue=1;
     int wasitadoor=0;
     while(true){
+        int didyoumove=0;
         refresh();
         refresh();
         int order='#';
@@ -645,6 +665,7 @@ void play_game(room rooms[8],player character,char board[36][71],int visible[36]
         }
         if(order== '7'){
             if(board[character.point.y -1][character.point.x -1]=='.'){
+                didyoumove=1;
                 if(!wasitadoor)
                     board[character.point.y][character.point.x]='.';
                 if(wasitadoor)
@@ -667,6 +688,7 @@ void play_game(room rooms[8],player character,char board[36][71],int visible[36]
 
             }
             else if(board[character.point.y -1][character.point.x -1]=='+'){
+                didyoumove=1;
                 if(!wasitadoor)
                     board[character.point.y][character.point.x]='.';
                 if(wasitadoor)
@@ -689,6 +711,7 @@ void play_game(room rooms[8],player character,char board[36][71],int visible[36]
 
             }
             else if(board[character.point.y -1][character.point.x -1]=='<'){
+                didyoumove=1;
                 if(!wasitadoor)
                     board[character.point.y][character.point.x]='.';
                 if(wasitadoor)
@@ -712,14 +735,15 @@ void play_game(room rooms[8],player character,char board[36][71],int visible[36]
         }
         if(order== '8'){
                 if(board[character.point.y-1][character.point.x]=='.'){
+                didyoumove=1;
                 if(!wasitadoor)
                     board[character.point.y][character.point.x]='.';
                 if(wasitadoor)
                     board[character.point.y][character.point.x]='+';
                 if(wasitastair)
                     board[character.point.y][character.point.x]='<';
-                 wasitadoor=0;
-                 wasitastair=0;
+                wasitadoor=0;
+                wasitastair=0;
                 character.point.y-=1;
                 clear();
                 if(ismaptrue)
@@ -732,6 +756,7 @@ void play_game(room rooms[8],player character,char board[36][71],int visible[36]
                 refresh();
                 }
                 else if(board[character.point.y-1][character.point.x]=='+'){
+                didyoumove=1;
                 if(!wasitadoor)
                     board[character.point.y][character.point.x]='.';
                 if(wasitadoor)
@@ -750,6 +775,7 @@ void play_game(room rooms[8],player character,char board[36][71],int visible[36]
                 refresh();
                 }
                 else if(board[character.point.y-1][character.point.x]=='<'){
+                didyoumove=1;
                 if(!wasitadoor)
                     board[character.point.y][character.point.x]='.';
                 if(wasitadoor)
@@ -770,9 +796,11 @@ void play_game(room rooms[8],player character,char board[36][71],int visible[36]
                 }
 
             
-        }
+        } 
+           
         if(order== '9'){
             if(board[character.point.y -1][character.point.x +1]=='.'){
+                didyoumove=1;
                 if(!wasitadoor)
                     board[character.point.y][character.point.x]='.';
                 if(wasitadoor)
@@ -794,6 +822,7 @@ void play_game(room rooms[8],player character,char board[36][71],int visible[36]
                 refresh();
             }
             else if(board[character.point.y -1][character.point.x +1]=='+'){
+                didyoumove=1;
                 if(!wasitadoor)
                     board[character.point.y][character.point.x]='.';
                 if(wasitadoor)
@@ -815,6 +844,7 @@ void play_game(room rooms[8],player character,char board[36][71],int visible[36]
                 refresh();
             }
             else if(board[character.point.y -1][character.point.x +1]=='<'){
+                didyoumove=1;
                 if(!wasitadoor)
                     board[character.point.y][character.point.x]='.';
                 if(wasitadoor)                if(wasitastair)
@@ -836,6 +866,7 @@ void play_game(room rooms[8],player character,char board[36][71],int visible[36]
         }
         if(order== '4'){
             if(board[character.point.y][character.point.x -1]=='.'){
+                didyoumove=1;
                 if(!wasitadoor)
                     board[character.point.y][character.point.x]='.';
                 if(wasitadoor)
@@ -857,6 +888,7 @@ void play_game(room rooms[8],player character,char board[36][71],int visible[36]
 
             }
             else if(board[character.point.y][character.point.x -1]=='+'){
+                didyoumove=1;
                 if(!wasitadoor)
                     board[character.point.y][character.point.x]='.';
                 if(wasitadoor)
@@ -878,6 +910,7 @@ void play_game(room rooms[8],player character,char board[36][71],int visible[36]
 
             }
             else if(board[character.point.y][character.point.x -1]=='<'){
+                didyoumove=1;
                 if(!wasitadoor)
                     board[character.point.y][character.point.x]='.';
                 if(wasitadoor)
@@ -902,6 +935,7 @@ void play_game(room rooms[8],player character,char board[36][71],int visible[36]
         }
         if(order== '6'){
             if(board[character.point.y][character.point.x +1]=='.'){
+                didyoumove=1;
                 if(!wasitadoor)
                     board[character.point.y][character.point.x]='.';
                 if(wasitadoor)
@@ -923,6 +957,7 @@ void play_game(room rooms[8],player character,char board[36][71],int visible[36]
 
             }
         else if(board[character.point.y][character.point.x +1]=='+'){
+                didyoumove=1;
                 if(!wasitadoor)
                     board[character.point.y][character.point.x]='.';
                 if(wasitadoor)
@@ -944,6 +979,7 @@ void play_game(room rooms[8],player character,char board[36][71],int visible[36]
 
             }
         else if(board[character.point.y][character.point.x +1]=='<'){
+                didyoumove=1;
                 if(!wasitadoor)
                     board[character.point.y][character.point.x]='.';
                 if(wasitadoor)
@@ -967,6 +1003,7 @@ void play_game(room rooms[8],player character,char board[36][71],int visible[36]
         }
         if(order== '1'){
             if(board[character.point.y +1][character.point.x -1]=='.'){
+                didyoumove=1;
                 if(!wasitadoor)
                     board[character.point.y][character.point.x]='.';
                 if(wasitadoor)
@@ -989,6 +1026,7 @@ void play_game(room rooms[8],player character,char board[36][71],int visible[36]
 
             }
             else if(board[character.point.y +1][character.point.x -1]=='+'){
+                didyoumove=1;
                 if(!wasitadoor)
                     board[character.point.y][character.point.x]='.';
                 if(wasitadoor)
@@ -1011,6 +1049,7 @@ void play_game(room rooms[8],player character,char board[36][71],int visible[36]
 
             }
             else if(board[character.point.y +1][character.point.x -1]=='<'){
+                didyoumove=1;
                 if(!wasitadoor)
                     board[character.point.y][character.point.x]='.';
                 if(wasitadoor)
@@ -1035,6 +1074,7 @@ void play_game(room rooms[8],player character,char board[36][71],int visible[36]
         }
         if(order== '2'){
             if(board[character.point.y +1][character.point.x]=='.'){
+                didyoumove=1;
                 if(!wasitadoor)
                     board[character.point.y][character.point.x]='.';
                 if(wasitadoor)
@@ -1056,6 +1096,7 @@ void play_game(room rooms[8],player character,char board[36][71],int visible[36]
 
             }
             else if(board[character.point.y +1][character.point.x]=='+'){
+                didyoumove=1;
                 if(!wasitadoor)
                     board[character.point.y][character.point.x]='.';
                 if(wasitadoor)
@@ -1077,6 +1118,7 @@ void play_game(room rooms[8],player character,char board[36][71],int visible[36]
 
             }
             else if(board[character.point.y +1][character.point.x]=='<'){
+                didyoumove=1;
                 if(!wasitadoor)
                     board[character.point.y][character.point.x]='.';
                 if(wasitadoor)
@@ -1101,6 +1143,7 @@ void play_game(room rooms[8],player character,char board[36][71],int visible[36]
         }
         if(order== '3'){
             if(board[character.point.y +1][character.point.x +1]=='.'){
+                didyoumove=1;
                 if(!wasitadoor)
                     board[character.point.y][character.point.x]='.';
                 if(wasitadoor)
@@ -1123,6 +1166,7 @@ void play_game(room rooms[8],player character,char board[36][71],int visible[36]
 
             }
             else if(board[character.point.y +1][character.point.x +1]=='+'){
+                didyoumove=1;
                 if(!wasitadoor)
                     board[character.point.y][character.point.x]='.';
                 if(wasitadoor)
@@ -1145,6 +1189,7 @@ void play_game(room rooms[8],player character,char board[36][71],int visible[36]
 
             }
             else if(board[character.point.y +1][character.point.x +1]=='<'){
+                didyoumove=1;
                 if(!wasitadoor)
                     board[character.point.y][character.point.x]='.';
                 if(wasitadoor)
@@ -1168,6 +1213,574 @@ void play_game(room rooms[8],player character,char board[36][71],int visible[36]
             
             
         }
+
+        if(order== '7' && !didyoumove){
+            if(board[character.point.y -1][character.point.x -1]=='F'){
+                if(!wasitadoor)
+                    board[character.point.y][character.point.x]='.';
+                if(wasitadoor)
+                    board[character.point.y][character.point.x]='+';
+                if(wasitastair)
+                    board[character.point.y][character.point.x]='<';
+                 wasitadoor=0;
+                 wasitastair=0;
+                character.point.y-=1;
+                character.point.x-=1;
+                character.food++;
+                clear();
+                if(ismaptrue)
+                    drawmap(board,visible);
+                else
+                    drawmapfalse(board);
+                refresh();
+                drawcharacter(board,character.color,character.point.x,character.point.y);
+                refresh();
+                refresh();
+
+            }
+            else if(board[character.point.y -1][character.point.x -1]=='g'){
+                if(!wasitadoor)
+                    board[character.point.y][character.point.x]='.';
+                if(wasitadoor)
+                    board[character.point.y][character.point.x]='+';
+                if(wasitastair)
+                    board[character.point.y][character.point.x]='<';
+                 wasitadoor=0;
+                 wasitastair=0;
+                character.point.y-=1;
+                character.point.x-=1;
+                character.gold+= randit(1,10);
+                clear();
+                if(ismaptrue)
+                    drawmap(board,visible);
+                else
+                    drawmapfalse(board);
+                refresh();
+                drawcharacter(board,character.color,character.point.x,character.point.y);
+                refresh();
+                refresh();
+
+            }
+            else if(board[character.point.y -1][character.point.x -1]=='G'){
+                if(!wasitadoor)
+                    board[character.point.y][character.point.x]='.';
+                if(wasitadoor)
+                    board[character.point.y][character.point.x]='+';
+                if(wasitastair)
+                    board[character.point.y][character.point.x]='<';
+                wasitastair=0;
+                character.point.y-=1;
+                character.point.x-=1;
+                character.gold=randit(15,25);
+                clear();
+                if(ismaptrue)
+                    drawmap(board,visible);
+                else
+                    drawmapfalse(board);
+                refresh();
+                drawcharacter(board,character.color,character.point.x,character.point.y);
+                refresh();
+                refresh();
+
+            }
+        }
+       if(order== '8' && !didyoumove){
+                if(board[character.point.y-1][character.point.x]=='F'){
+                if(!wasitadoor)
+                    board[character.point.y][character.point.x]='.';
+                if(wasitadoor)
+                    board[character.point.y][character.point.x]='+';
+                if(wasitastair)
+                    board[character.point.y][character.point.x]='<';
+                wasitadoor=0;
+                wasitastair=0;
+                character.point.y-=1;
+           
+                clear();
+                character.food++;
+                if(ismaptrue)
+                    drawmap(board,visible);
+                else
+                    drawmapfalse(board);
+                refresh();
+                drawcharacter(board,character.color,character.point.x,character.point.y);
+                refresh();
+                refresh();
+                }
+                else if(board[character.point.y-1][character.point.x]=='g'){
+                if(!wasitadoor)
+                    board[character.point.y][character.point.x]='.';
+                if(wasitadoor)
+                    board[character.point.y][character.point.x]='+';
+                 wasitadoor=0;
+                 wasitastair=0;
+                character.gold+=randit(1,10);
+                character.point.y-=1;
+                clear();
+                if(ismaptrue)
+                    drawmap(board,visible);
+                else
+                    drawmapfalse(board);
+                refresh();
+                drawcharacter(board,character.color,character.point.x,character.point.y);
+                refresh();
+                refresh();
+                }
+                else if(board[character.point.y-1][character.point.x]=='G'){
+                if(!wasitadoor)
+                    board[character.point.y][character.point.x]='.';
+                if(wasitadoor)
+                    board[character.point.y][character.point.x]='+';
+                if(wasitastair)
+                    board[character.point.y][character.point.x]='<';
+                wasitastair=0;
+                character.gold+=randit(15,25);
+                character.point.y-=1;
+                clear();
+                if(ismaptrue)
+                    drawmap(board,visible);
+                else
+                    drawmapfalse(board);
+                refresh();
+                drawcharacter(board,character.color,character.point.x,character.point.y);
+                refresh();
+                refresh();
+                }
+
+            
+        }
+     if(order== '9' && !didyoumove){
+            if(board[character.point.y -1][character.point.x +1]=='F'){
+                didyoumove=1;
+                if(!wasitadoor)
+                    board[character.point.y][character.point.x]='.';
+                if(wasitadoor)
+                    board[character.point.y][character.point.x]='+';
+                if(wasitastair)
+                    board[character.point.y][character.point.x]='<';
+                 wasitadoor=0;
+                 wasitastair=0;
+                character.food+=1;
+                character.point.y-=1;
+                character.point.x+=1;
+                clear();
+                if(ismaptrue)
+                    drawmap(board,visible);
+                else
+                    drawmapfalse(board);
+                refresh();
+                drawcharacter(board,character.color,character.point.x,character.point.y);
+                refresh();
+                refresh();
+            }
+            else if(board[character.point.y -1][character.point.x +1]=='g'){
+                didyoumove=1;
+                if(!wasitadoor)
+                    board[character.point.y][character.point.x]='.';
+                if(wasitadoor)
+                    board[character.point.y][character.point.x]='+';
+                if(wasitastair)
+                    board[character.point.y][character.point.x]='<';
+                 wasitadoor=0;
+                 wasitastair=0;
+                character.gold+=randit(1,10);
+                character.point.y-=1;
+                character.point.x+=1;
+                clear();
+                if(ismaptrue)
+                    drawmap(board,visible);
+                else
+                    drawmapfalse(board);
+                refresh();
+                drawcharacter(board,character.color,character.point.x,character.point.y);
+                refresh();
+                refresh();
+            }
+            else if(board[character.point.y -1][character.point.x +1]=='G'){
+                didyoumove=1;
+                if(!wasitadoor)
+                    board[character.point.y][character.point.x]='.';
+                if(wasitadoor)                if(wasitastair)
+                    board[character.point.y][character.point.x]='<';
+                    board[character.point.y][character.point.x]='+';
+                wasitastair=0;
+                character.gold+=randit(15,25);
+                character.point.y-=1;
+                character.point.x+=1;
+                clear();
+                if(ismaptrue)
+                    drawmap(board,visible);
+                else
+                    drawmapfalse(board);
+                refresh();
+                drawcharacter(board,character.color,character.point.x,character.point.y);
+                refresh();
+                refresh();
+            }
+        }
+       if(order== '4' && !didyoumove){
+            if(board[character.point.y][character.point.x -1]=='F'){
+                didyoumove=1;
+                if(!wasitadoor)
+                    board[character.point.y][character.point.x]='.';
+                if(wasitadoor)
+                    board[character.point.y][character.point.x]='+';
+                if(wasitastair)
+                    board[character.point.y][character.point.x]='<';
+                 wasitadoor=0;
+                 wasitastair=0;
+                character.food+=1;
+                character.point.x-=1;
+                clear();
+                if(ismaptrue)
+                    drawmap(board,visible);
+                else
+                    drawmapfalse(board);
+                refresh();
+                drawcharacter(board,character.color,character.point.x,character.point.y);
+                refresh();
+                refresh();
+
+            }
+            else if(board[character.point.y][character.point.x -1]=='g'){
+                didyoumove=1;
+                if(!wasitadoor)
+                    board[character.point.y][character.point.x]='.';
+                if(wasitadoor)
+                    board[character.point.y][character.point.x]='+';
+                if(wasitastair)
+                    board[character.point.y][character.point.x]='<';
+                 wasitadoor=0;
+                 wasitastair=0;
+                character.gold+=randit(1,10);
+                character.point.x-=1;
+                clear();
+                if(ismaptrue)
+                    drawmap(board,visible);
+                else
+                    drawmapfalse(board);
+                refresh();
+                drawcharacter(board,character.color,character.point.x,character.point.y);
+                refresh();
+                refresh();
+
+            }
+            else if(board[character.point.y][character.point.x -1]=='G'){
+                didyoumove=1;
+                if(!wasitadoor)
+                    board[character.point.y][character.point.x]='.';
+                if(wasitadoor)
+                    board[character.point.y][character.point.x]='+';
+                if(wasitastair)
+                    board[character.point.y][character.point.x]='<';
+                wasitastair=0;
+                character.gold+=randit(1,25);
+                character.point.x-=1;
+                clear();
+                if(ismaptrue)
+                    drawmap(board,visible);
+                else
+                    drawmapfalse(board);
+                refresh();
+                drawcharacter(board,character.color,character.point.x,character.point.y);
+                refresh();                if(wasitastair)
+                    board[character.point.y][character.point.x]='<';
+                refresh();
+
+            }
+            
+        }
+       if(order== '6' && !didyoumove){
+            if(board[character.point.y][character.point.x +1]=='F'){
+                didyoumove=1;
+                if(!wasitadoor)
+                    board[character.point.y][character.point.x]='.';
+                if(wasitadoor)
+                    board[character.point.y][character.point.x]='+';
+                if(wasitastair)
+                    board[character.point.y][character.point.x]='<';
+                 wasitadoor=0;
+                 wasitastair=0;
+                character.food+=1;
+                character.point.x+=1;
+                clear();
+                if(ismaptrue)
+                    drawmap(board,visible);
+                else
+                    drawmapfalse(board);
+                refresh();
+                drawcharacter(board,character.color,character.point.x,character.point.y);
+                refresh();
+                refresh();
+
+            }
+        else if(board[character.point.y][character.point.x +1]=='g'){
+                didyoumove=1;
+                if(!wasitadoor)
+                    board[character.point.y][character.point.x]='.';
+                if(wasitadoor)
+                    board[character.point.y][character.point.x]='+';
+                if(wasitastair)
+                    board[character.point.y][character.point.x]='<';
+                 wasitadoor=0;
+                 wasitastair=0;
+                character.gold+=randit(1,10);
+                character.point.x+=1;
+                clear();
+                if(ismaptrue)
+                    drawmap(board,visible);
+                else
+                    drawmapfalse(board);
+                refresh();
+                drawcharacter(board,character.color,character.point.x,character.point.y);
+                refresh();
+                refresh();
+
+            }
+        else if(board[character.point.y][character.point.x +1]=='G'){
+                didyoumove=1;
+                if(!wasitadoor)
+                    board[character.point.y][character.point.x]='.';
+                if(wasitadoor)
+                    board[character.point.y][character.point.x]='+';
+                if(wasitastair)
+                    board[character.point.y][character.point.x]='<';
+                wasitastair=0;
+                character.gold+=randit(15,25);
+                character.point.x+=1;
+                clear();
+                if(ismaptrue)
+                    drawmap(board,visible);
+                else
+                    drawmapfalse(board);
+                refresh();
+                drawcharacter(board,character.color,character.point.x,character.point.y);
+                refresh();
+                refresh();
+
+            }
+            
+        }
+        if(order== '1' && !didyoumove){
+            if(board[character.point.y +1][character.point.x -1]=='F'){
+                didyoumove=1;
+                if(!wasitadoor)
+                    board[character.point.y][character.point.x]='.';
+                if(wasitadoor)
+                    board[character.point.y][character.point.x]='+';
+                if(wasitastair)
+                    board[character.point.y][character.point.x]='<';
+                 wasitadoor=0;
+                 wasitastair=0;
+                character.food+=1;
+                character.point.y+=1;
+                character.point.x-=1;
+                clear();
+                if(ismaptrue)
+                    drawmap(board,visible);
+                else
+                    drawmapfalse(board);
+                refresh();
+                drawcharacter(board,character.color,character.point.x,character.point.y);
+                refresh();
+                refresh();
+
+            }
+            else if(board[character.point.y +1][character.point.x -1]=='g'){
+                didyoumove=1;
+                if(!wasitadoor)
+                    board[character.point.y][character.point.x]='.';
+                if(wasitadoor)
+                    board[character.point.y][character.point.x]='+';
+                if(wasitastair)
+                    board[character.point.y][character.point.x]='<';
+                 wasitadoor=0;
+                 wasitastair=0;
+                character.gold+=randit(1,10);
+                character.point.y+=1;
+                character.point.x-=1;
+                clear();
+                if(ismaptrue)
+                    drawmap(board,visible);
+                else
+                    drawmapfalse(board);
+                refresh();
+                drawcharacter(board,character.color,character.point.x,character.point.y);
+                refresh();
+                refresh();
+
+            }
+            else if(board[character.point.y +1][character.point.x -1]=='G'){
+                didyoumove=1;
+                if(!wasitadoor)
+                    board[character.point.y][character.point.x]='.';
+                if(wasitadoor)
+                    board[character.point.y][character.point.x]='+';
+                if(wasitastair)
+                    board[character.point.y][character.point.x]='<';
+                wasitastair=0;
+                character.gold+=randit(15,25);
+                character.point.y+=1;
+                character.point.x-=1;
+                clear();
+                if(ismaptrue)
+                    drawmap(board,visible);
+                else
+                    drawmapfalse(board);
+                refresh();
+                drawcharacter(board,character.color,character.point.x,character.point.y);
+                refresh();
+                refresh();
+
+            }
+            
+        }
+      if(order== '2' && !didyoumove){
+            if(board[character.point.y +1][character.point.x]=='F'){
+                didyoumove=1;
+                if(!wasitadoor)
+                    board[character.point.y][character.point.x]='.';
+                if(wasitadoor)
+                    board[character.point.y][character.point.x]='+';
+                if(wasitastair)
+                    board[character.point.y][character.point.x]='<';
+                character.food+=1;
+                 wasitadoor=0;
+                 wasitastair=0;
+                character.point.y+=1;
+                clear();
+                if(ismaptrue)
+                    drawmap(board,visible);
+                else
+                    drawmapfalse(board);
+                refresh();
+                drawcharacter(board,character.color,character.point.x,character.point.y);
+                refresh();
+                refresh();
+
+            }
+            else if(board[character.point.y +1][character.point.x]=='g'){
+                didyoumove=1;
+                if(!wasitadoor)
+                    board[character.point.y][character.point.x]='.';
+                if(wasitadoor)
+                    board[character.point.y][character.point.x]='+';
+                if(wasitastair)
+                    board[character.point.y][character.point.x]='<';
+                 wasitadoor=0;
+                 wasitastair=0;
+                character.gold+=randit(1,10);
+                character.point.y+=1;
+                clear();
+                if(ismaptrue)
+                    drawmap(board,visible);
+                else
+                    drawmapfalse(board);
+                drawcharacter(board,character.color,character.point.x,character.point.y);
+                refresh();
+                refresh();
+                refresh();
+
+            }
+            else if(board[character.point.y +1][character.point.x]=='G'){
+                didyoumove=1;
+                if(!wasitadoor)
+                    board[character.point.y][character.point.x]='.';
+                if(wasitadoor)
+                    board[character.point.y][character.point.x]='+';
+                if(wasitastair)
+                    board[character.point.y][character.point.x]='<';
+                wasitastair=0;
+                character.gold+=randit(15,25);
+                character.point.y+=1;
+                clear();
+                if(ismaptrue)
+                    drawmap(board,visible);
+                else
+                    drawmapfalse(board);
+                refresh();
+                drawcharacter(board,character.color,character.point.x,character.point.y);
+                refresh();
+                refresh();
+
+            }      
+        }
+       if(order== '3' && !didyoumove){
+            if(board[character.point.y +1][character.point.x +1]=='F'){
+                didyoumove=1;
+                if(!wasitadoor)
+                    board[character.point.y][character.point.x]='.';
+                if(wasitadoor)
+                    board[character.point.y][character.point.x]='+';
+                if(wasitastair)
+                    board[character.point.y][character.point.x]='<';
+                 wasitadoor=0;
+                 wasitastair=0;
+                character.food+=1;
+                character.point.y+=1;
+                character.point.x+=1;
+                clear();
+                if(ismaptrue)
+                    drawmap(board,visible);
+                else
+                    drawmapfalse(board);
+                refresh();
+                drawcharacter(board,character.color,character.point.x,character.point.y);
+                refresh();
+                refresh();
+
+            }
+            else if(board[character.point.y +1][character.point.x +1]=='g'){
+                didyoumove=1;
+                if(!wasitadoor)
+                    board[character.point.y][character.point.x]='.';
+                if(wasitadoor)
+                    board[character.point.y][character.point.x]='+';
+                if(wasitastair)
+                    board[character.point.y][character.point.x]='<';
+                 wasitadoor=0;
+                 wasitastair=0;
+                character.gold+=randit(1,10);
+                character.point.y+=1;
+                character.point.x+=1;
+                clear();
+                if(ismaptrue)
+                    drawmap(board,visible);
+                else
+                    drawmapfalse(board);
+                refresh();
+                drawcharacter(board,character.color,character.point.x,character.point.y);
+                refresh();
+
+            }
+            else if(board[character.point.y +1][character.point.x +1]=='G'){
+                didyoumove=1;
+                if(!wasitadoor)
+                    board[character.point.y][character.point.x]='.';
+                if(wasitadoor)
+                    board[character.point.y][character.point.x]='+';
+                if(wasitastair)
+                    board[character.point.y][character.point.x]='<';
+                wasitastair=0;
+                character.gold+=randit(15,25);
+                character.point.y+=1;
+                character.point.x+=1;
+                clear();
+                if(ismaptrue)
+                    drawmap(board,visible);
+                else
+                    drawmapfalse(board);
+                refresh();
+                drawcharacter(board,character.color,character.point.x,character.point.y);
+                refresh();
+                refresh();
+
+            }
+            
+            
+        }
+
+
 
 
 
@@ -1290,6 +1903,7 @@ void BEGIN(int color,int difficulty,int floor,char name[]) {
     }
     spawncorridors(room_count,rooms,board);
     generateweaponandspell(board,rooms,room_count);
+    generatefoodgoldblackgold(board,rooms,room_count);
     int x,y;
     x=randit(rooms[0].startx+1,rooms[0].startx+rooms[0].length - 3);
     y=randit(rooms[0].starty+1,rooms[0].starty+rooms[0].width - 3);
