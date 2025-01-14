@@ -37,22 +37,176 @@ int randit(int a,int b){
     return ans;
 }
 
+void showmsg(char msg[], int color){ //green=3 //red=2 //normal=1
+    move(0,0);
+    attron(A_BOLD);
+    if(color!=1)
+        attron(COLOR_PAIR(color));
+    printw("%s",msg);
+    if(color!=1)
+        attroff(COLOR_PAIR(color));
+    attroff(A_BOLD);
 
-void spawncorridors(int room_count,room rooms,char board[36][71]){
-    for(int i=0;i<=room_count;i++){
-        int side=randit(1,4);
-        int widran=randit(1,rooms[i].width);
-        int lengran=randit(1,rooms[i].length);
+} 
+
+
+
+void buildcorridorRIGHTTOLEFT(char board[36][71],point door1,point door2){
+    board[door1.y][door1.x]='+';
+    board[door2.y][door2.x]='+';
+    for(int i=door2.x+1;i<door1.x;i++){
+        board[door1.y][i]='.';
+        board[door1.y-1][i]='#';
+        board[door1.y+1][i]='#';
+    }
+}
+void buildcorridorBOTTOTOP(char board[36][71],point door1,point door2){
+    board[door1.y][door1.x]='+';
+    board[door2.y][door2.x]='+';
+    for(int i=door1.y-1;i>door2.y;i--){
+        board[i][door1.x]='.';
+        board[i][door1.x+1]='#';
+        board[i][door1.x-1]='#';
     }
 
+}
+void buildcorridorTOPTOBOT(char board[36][71],point door1,point door2){
+    board[door1.y][door1.x]='+';
+    board[door2.y][door2.x]='+';
+    for(int i=door1.y+1;i<door2.y;i++){
+        board[i][door1.x]='.';
+        board[i][door1.x+1]='#';
+        board[i][door1.x-1]='#';
+    }
+}
+void buildcorridorLEFTTORIGHT(char board[36][71],point door1,point door2){
+    board[door1.y][door1.x]='+';
+    board[door2.y][door2.x]='+';
+    for(int i=door1.x+1;i<door2.x;i++){
+        board[door1.y][i]='.';
+        board[door1.y-1][i]='#';
+        board[door1.y+1][i]='#';
+    }
 
-    
 
 }
 
 
+void spawncorridors(int room_count,room rooms[8],char board[36][71]){
+    for(int Q=0;Q<3;Q++){
+    int i=0;
+    int attempts=10000;
+    while(i!=room_count){
+        if(attempts==0){
+            attempts=10000;
+            i++;
+            continue;
+        }
+        int side=randit(1,4);    // 1 is left | 2 is up | 3 is down | 4 is right
+        int widran=randit(1,rooms[i].width-1);
+        int lengran=randit(1,rooms[i].length-1);
+        int didithappen=0;
+        int hasithappend=0;
+        point door1,door2;
+        if(side==1){
+            for(int k=rooms[i].starty;k<rooms[i].starty+rooms[i].width;k++){
+                if(board[k][rooms[i].startx]=='+'){
+                    hasithappend=1;
+                }
+            }
+        }
+        if(side==2){
+            for(int k=rooms[i].startx;k<rooms[i].startx+rooms[i].length;k++){
+                if(board[rooms[i].starty][k]=='+'){
+                    hasithappend=1;
+                }
+            }
+        }
+        if(side==3){
+            for(int k=rooms[i].startx;k<rooms[i].startx+rooms[i].length;k++){
+                if(board[rooms[i].starty+rooms[i].width][k]=='+'){
+                    hasithappend=1;
+                }
+            }
+       }
+        if(side==4){
+            for(int k=rooms[i].starty;k<rooms[i].starty+rooms[i].width;k++){
+                if(board[k][rooms[i].startx+rooms[i].length]=='+'){
+                    hasithappend=1;
+                }
+            }
+        }
+        if(hasithappend){
+            continue;
+        }
 
-void savegame(room rooms[8],player character,char board[36][71],int visible[35][70]){
+
+        if(side==1){
+            door1.x=rooms[i].startx;
+            door1.y=rooms[i].starty+widran;
+            for(int j=1;j<12;j++){
+                if((board[door1.y][door1.x-j]=='|') && (door1.x-j>4)  && (board[door1.y][door1.x-j-1]!='_') ){
+                    didithappen=1;
+                    door2.x=door1.x-j;
+                    door2.y=door1.y;
+                    buildcorridorRIGHTTOLEFT(board,door1,door2);
+                    break;
+                }
+            }
+        }
+        if(side==2){
+            door1.x=rooms[i].startx+lengran;
+            door1.y=rooms[i].starty;
+            for(int j=1;j<12;j++){
+                if((board[door1.y-j][door1.x]=='_') && door1.y-j!=0){
+                    didithappen=1;
+                    door2.x=door1.x;
+                    door2.y=door1.y-j;
+                    buildcorridorBOTTOTOP(board,door1,door2);
+                    break;
+                }
+            }
+        }
+        if(side==3){
+            door1.x=rooms[i].startx+lengran;
+            door1.y=rooms[i].starty+rooms[i].width;
+            for(int j=1;j<12;j++){
+                if((board[door1.y+j][door1.x]=='_') && door1.y+j!=34){
+                    didithappen=1;
+                    door2.x=door1.x;
+                    door2.y=door1.y+j;
+                    buildcorridorTOPTOBOT(board,door1,door2);
+                    break;
+                }
+            }
+        }
+        if(side==4){
+            door1.x=rooms[i].startx+rooms[i].length;
+            door1.y=rooms[i].starty+widran;
+            for(int j=1;j<12;j++){
+                if((board[door1.y][door1.x+j]=='|') && (door1.x+j<66) && (board[door1.y][door1.x+j+1]!='_') ){
+                    didithappen=1;
+                    door2.x=door1.x+j;
+                    door2.y=door1.y;
+                    buildcorridorLEFTTORIGHT(board,door1,door2);
+                    break;
+                }
+            }
+        }
+        
+
+        if(didithappen){
+            i++;
+            attempts=10000;
+        }
+        attempts--;
+        }
+    }
+    }
+
+
+
+void savegame(room rooms[],player character,char board[36][71],int visible[36][71]){
     FILE *roomfile = fopen("rooms.txt", "r");
     if(roomfile == NULL)
         roomfile = fopen("rooms.txt", "w");
@@ -70,7 +224,7 @@ void savegame(room rooms[8],player character,char board[36][71],int visible[35][
         visiblefile = fopen("visible.txt", "w");
     fclose(visiblefile);
     //save room
-    roomfile=fopen("rooms.txt","a");
+  // roomfile=fopen("rooms.txt","a");
     //save room
 
     charfile=fopen("character.txt","a");
@@ -92,8 +246,6 @@ void savegame(room rooms[8],player character,char board[36][71],int visible[35][
             fprintf(visiblefile,"%d",visible[i][j]);
     fprintf(visiblefile,"\n");
     fclose(visiblefile);
-
-
 
 
 
@@ -165,7 +317,7 @@ int isroomvalid(char board[36][71],int startx,int starty,int length,int width){
     return valid;
     }
 
-void setupboard(char board[36][71],int visible[35][70]) {
+void setupboard(char board[36][71],int visible[36][71]) {
     for (int i = 0; i<36; i++) {
         for (int j = 0; j<71; j++) {
             board[i][j] = ' ';
@@ -187,7 +339,7 @@ void setupboard(char board[36][71],int visible[35][70]) {
 }
 
 
-void showmap(char board[36][71],int visible[35][70]) {
+void showmap(char board[36][71],int visible[36][71]) {
     clear();
         for (int j = 0; j < 70; j++) {
     for (int i=0;i<35;i++) {
@@ -198,7 +350,7 @@ void showmap(char board[36][71],int visible[35][70]) {
     getch();
 }
 
-void drawmap(char board[36][71],int visible[35][70]) {
+void drawmap(char board[36][71],int visible[36][71]) {
     clear();
         for (int j = 0; j < 70; j++) {
     for (int i=0;i<35;i++) {
@@ -223,16 +375,16 @@ void drawmapfalse(char board[36][71]) {
 
 
 
-void lightupplayer(int visible[35][70],int x,int y){
+void lightupplayer(int visible[36][71],int x,int y){
     for(int i=-2;i<3;i++)
         for(int j=-2;j<3;j++)
-            visible[j][i]=1;
+            visible[y+j][x+i]=1;
 
 
 
 }
 
-void lightuproom(room room,int visible[35][70]){
+void lightuproom(room room,int visible[36][71]){
     int maxx=room.startx+room.length+1;
     int maxy=room.starty+room.width+1;
     for(int i=room.startx;i<maxx;i++)
@@ -241,10 +393,20 @@ void lightuproom(room room,int visible[35][70]){
     }
 }
 
+void lightupplayersroom(int visible[36][71],int x,int y,room rooms[8],int room_count){
+    room shine=rooms[0];
+    for(int i=0;i<room_count;i++){
+        if(rooms[i].startx <=x && x<=rooms[i].startx+rooms[i].length  && rooms[i].starty<=y  && y<=rooms[i].starty+rooms[i].width)
+            shine=rooms[i];
+    }
+    lightuproom(shine,visible);
+}
 
-void play_game(room rooms[8],player character,char board[36][71],int visible[35][70]){
+
+void play_game(room rooms[8],player character,char board[36][71],int visible[36][71],int room_count){
     nodelay(stdscr, TRUE);
     int ismaptrue=1;
+    int wasitadoor=0;
     while(true){
         refresh();
         refresh();
@@ -252,7 +414,7 @@ void play_game(room rooms[8],player character,char board[36][71],int visible[35]
         order=getch();
         if(order=='s' || order=='S'){
             savegame(rooms,character,board,visible);
-            return;
+            showmsg("Game has been saved",3);
         }
         if( (order=='m' || order=='M')  && ismaptrue ){
             drawmapfalse(board);
@@ -271,7 +433,30 @@ void play_game(room rooms[8],player character,char board[36][71],int visible[35]
         }
         if(order== '7'){
             if(board[character.point.y -1][character.point.x -1]=='.'){
-                board[character.point.y][character.point.x]='.';
+                if(!wasitadoor)
+                    board[character.point.y][character.point.x]='.';
+                if(wasitadoor)
+                    board[character.point.y][character.point.x]='+';
+                wasitadoor=0;
+                character.point.y-=1;
+                character.point.x-=1;
+                clear();
+                if(ismaptrue)
+                    drawmap(board,visible);
+                else
+                    drawmapfalse(board);
+                refresh();
+                drawcharacter(board,character.color,character.point.x,character.point.y);
+                refresh();
+                refresh();
+
+            }
+            else if(board[character.point.y -1][character.point.x -1]=='+'){
+                if(!wasitadoor)
+                    board[character.point.y][character.point.x]='.';
+                if(wasitadoor)
+                    board[character.point.y][character.point.x]='+';
+                wasitadoor=1;
                 character.point.y-=1;
                 character.point.x-=1;
                 clear();
@@ -287,25 +472,50 @@ void play_game(room rooms[8],player character,char board[36][71],int visible[35]
             }
         }
         if(order== '8'){
-                board[character.point.y][character.point.x]='.';
+                if(board[character.point.y-1][character.point.x]=='.'){
+                if(!wasitadoor)
+                    board[character.point.y][character.point.x]='.';
+                if(wasitadoor)
+                    board[character.point.y][character.point.x]='+';
+                wasitadoor=0;
                 character.point.y-=1;
                 clear();
                 if(ismaptrue)
                     drawmap(board,visible);
                 else
                     drawmapfalse(board);
-            if(board[character.point.y -1][character.point.x]=='.'){
                 refresh();
                 drawcharacter(board,character.color,character.point.x,character.point.y);
                 refresh();
                 refresh();
+                }
+                else if(board[character.point.y-1][character.point.x]=='+'){
+                if(!wasitadoor)
+                    board[character.point.y][character.point.x]='.';
+                if(wasitadoor)
+                    board[character.point.y][character.point.x]='+';
+                wasitadoor=1;
+                character.point.y-=1;
+                clear();
+                if(ismaptrue)
+                    drawmap(board,visible);
+                else
+                    drawmapfalse(board);
+                refresh();
+                drawcharacter(board,character.color,character.point.x,character.point.y);
+                refresh();
+                refresh();
+                }
 
-            }
             
         }
         if(order== '9'){
             if(board[character.point.y -1][character.point.x +1]=='.'){
-                board[character.point.y][character.point.x]='.';
+                if(!wasitadoor)
+                    board[character.point.y][character.point.x]='.';
+                if(wasitadoor)
+                    board[character.point.y][character.point.x]='+';
+                wasitadoor=0;
                 character.point.y-=1;
                 character.point.x+=1;
                 clear();
@@ -317,13 +527,51 @@ void play_game(room rooms[8],player character,char board[36][71],int visible[35]
                 drawcharacter(board,character.color,character.point.x,character.point.y);
                 refresh();
                 refresh();
-
             }
-            
+            else if(board[character.point.y -1][character.point.x +1]=='+'){
+                if(!wasitadoor)
+                    board[character.point.y][character.point.x]='.';
+                if(wasitadoor)
+                    board[character.point.y][character.point.x]='+';
+                wasitadoor=1;
+                character.point.y-=1;
+                character.point.x+=1;
+                clear();
+                if(ismaptrue)
+                    drawmap(board,visible);
+                else
+                    drawmapfalse(board);
+                refresh();
+                drawcharacter(board,character.color,character.point.x,character.point.y);
+                refresh();
+                refresh();
+            }
         }
         if(order== '4'){
             if(board[character.point.y][character.point.x -1]=='.'){
-                board[character.point.y][character.point.x]='.';
+                if(!wasitadoor)
+                    board[character.point.y][character.point.x]='.';
+                if(wasitadoor)
+                    board[character.point.y][character.point.x]='+';
+                wasitadoor=0;
+                character.point.x-=1;
+                clear();
+                if(ismaptrue)
+                    drawmap(board,visible);
+                else
+                    drawmapfalse(board);
+                refresh();
+                drawcharacter(board,character.color,character.point.x,character.point.y);
+                refresh();
+                refresh();
+
+            }
+            else if(board[character.point.y][character.point.x -1]=='+'){
+                if(!wasitadoor)
+                    board[character.point.y][character.point.x]='.';
+                if(wasitadoor)
+                    board[character.point.y][character.point.x]='+';
+                wasitadoor=1;
                 character.point.x-=1;
                 clear();
                 if(ismaptrue)
@@ -340,7 +588,29 @@ void play_game(room rooms[8],player character,char board[36][71],int visible[35]
         }
         if(order== '6'){
             if(board[character.point.y][character.point.x +1]=='.'){
-                board[character.point.y][character.point.x]='.';
+                if(!wasitadoor)
+                    board[character.point.y][character.point.x]='.';
+                if(wasitadoor)
+                    board[character.point.y][character.point.x]='+';
+                wasitadoor=0;
+                character.point.x+=1;
+                clear();
+                if(ismaptrue)
+                    drawmap(board,visible);
+                else
+                    drawmapfalse(board);
+                refresh();
+                drawcharacter(board,character.color,character.point.x,character.point.y);
+                refresh();
+                refresh();
+
+            }
+        else if(board[character.point.y][character.point.x +1]=='+'){
+                if(!wasitadoor)
+                    board[character.point.y][character.point.x]='.';
+                if(wasitadoor)
+                    board[character.point.y][character.point.x]='+';
+                wasitadoor=1;
                 character.point.x+=1;
                 clear();
                 if(ismaptrue)
@@ -357,7 +627,30 @@ void play_game(room rooms[8],player character,char board[36][71],int visible[35]
         }
         if(order== '1'){
             if(board[character.point.y +1][character.point.x -1]=='.'){
-                board[character.point.y][character.point.x]='.';
+                if(!wasitadoor)
+                    board[character.point.y][character.point.x]='.';
+                if(wasitadoor)
+                    board[character.point.y][character.point.x]='+';
+                wasitadoor=0;
+                character.point.y+=1;
+                character.point.x-=1;
+                clear();
+                if(ismaptrue)
+                    drawmap(board,visible);
+                else
+                    drawmapfalse(board);
+                refresh();
+                drawcharacter(board,character.color,character.point.x,character.point.y);
+                refresh();
+                refresh();
+
+            }
+            else if(board[character.point.y +1][character.point.x -1]=='+'){
+                if(!wasitadoor)
+                    board[character.point.y][character.point.x]='.';
+                if(wasitadoor)
+                    board[character.point.y][character.point.x]='+';
+                wasitadoor=1;
                 character.point.y+=1;
                 character.point.x-=1;
                 clear();
@@ -375,7 +668,29 @@ void play_game(room rooms[8],player character,char board[36][71],int visible[35]
         }
         if(order== '2'){
             if(board[character.point.y +1][character.point.x]=='.'){
-                board[character.point.y][character.point.x]='.';
+                if(!wasitadoor)
+                    board[character.point.y][character.point.x]='.';
+                if(wasitadoor)
+                    board[character.point.y][character.point.x]='+';
+                wasitadoor=0;
+                character.point.y+=1;
+                clear();
+                if(ismaptrue)
+                    drawmap(board,visible);
+                else
+                    drawmapfalse(board);
+                refresh();
+                drawcharacter(board,character.color,character.point.x,character.point.y);
+                refresh();
+                refresh();
+
+            }
+            else if(board[character.point.y +1][character.point.x]=='+'){
+                if(!wasitadoor)
+                    board[character.point.y][character.point.x]='.';
+                if(wasitadoor)
+                    board[character.point.y][character.point.x]='+';
+                wasitadoor=1;
                 character.point.y+=1;
                 clear();
                 if(ismaptrue)
@@ -389,10 +704,34 @@ void play_game(room rooms[8],player character,char board[36][71],int visible[35]
 
             }
             
+            
         }
         if(order== '3'){
             if(board[character.point.y +1][character.point.x +1]=='.'){
-                board[character.point.y][character.point.x]='.';
+                if(!wasitadoor)
+                    board[character.point.y][character.point.x]='.';
+                if(wasitadoor)
+                    board[character.point.y][character.point.x]='+';
+                wasitadoor=0;
+                character.point.y+=1;
+                character.point.x+=1;
+                clear();
+                if(ismaptrue)
+                    drawmap(board,visible);
+                else
+                    drawmapfalse(board);
+                refresh();
+                drawcharacter(board,character.color,character.point.x,character.point.y);
+                refresh();
+                refresh();
+
+            }
+            else if(board[character.point.y +1][character.point.x +1]=='+'){
+                if(!wasitadoor)
+                    board[character.point.y][character.point.x]='.';
+                if(wasitadoor)
+                    board[character.point.y][character.point.x]='+';
+                wasitadoor=1;
                 character.point.y+=1;
                 character.point.x+=1;
                 clear();
@@ -407,6 +746,7 @@ void play_game(room rooms[8],player character,char board[36][71],int visible[35]
 
             }
             
+            
         }
 
 
@@ -414,16 +754,19 @@ void play_game(room rooms[8],player character,char board[36][71],int visible[35]
 
 
 
-
+    lightupplayer(visible,character.point.x,character.point.y);
+    if(wasitadoor){
+        lightupplayersroom(visible,character.point.x,character.point.y,rooms,room_count);
+    }
     usleep(50);
     }
     
 }
 
 
-void visiblesetup(int visible[35][70]){
-    for (int i = 0; i<36; i++) {
-        for (int j = 0; j<71; j++) {
+void visiblesetup(int visible[36][71]){
+    for (int i = 0; i<37; i++) {
+        for (int j = 0; j<72; j++) {
             visible[i][j]=0;
         }
     }
@@ -436,11 +779,11 @@ void BEGIN(int color,int difficulty) {
     player character;
     room rooms[8];
     int q = 6+(rand() % 3);
-    int roomcount=q;
+    int room_count=q;
     clear();
     refresh();
     char board[36][71];
-    int visible[35][70];
+    int visible[36][71];
     setupboard(board,visible);
     int count=0;
     int max_attempts = 10000;
@@ -450,7 +793,7 @@ void BEGIN(int color,int difficulty) {
             setupboard(board, visible);
             count=0;
             q =6+(rand() % 3);
-            roomcount=q;
+            room_count=q;
             attempts = 0;
             continue;
         }
@@ -505,8 +848,7 @@ void BEGIN(int color,int difficulty) {
     character.weapon[4]=0;
     character.weapon[5]=0;
     character.spell[3]=0;
-    play_game(rooms,character,board,visible);
-    
+    play_game(rooms,character,board,visible,room_count);
 }
 //int main() {
  //   initscr();
