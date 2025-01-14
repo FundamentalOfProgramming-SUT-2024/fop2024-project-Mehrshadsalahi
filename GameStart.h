@@ -1,3 +1,4 @@
+#include<stdio.h>
 #include <ncurses.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -41,6 +42,7 @@ int randit(int a,int b){
     int ans=(rand() % (b-a+1))+a;
     return ans;
 }
+
 
 
 
@@ -622,6 +624,61 @@ void nextfloor(int room_count,int floor,room rooms[8],player character,char name
     refresh();
     play_game(rooms,character,board,visible,room_count,floor+1,name);
 }
+
+void loadgame(int savenum){
+    player character;
+    room rooms[8];
+    int room_count;
+    char board[36][71];
+    int visible[36][71];
+    char name[100];
+    FILE *roomfile = fopen("rooms.txt", "r");
+    FILE *charfile = fopen("character.txt", "r");
+    FILE *boardfile = fopen("board.txt", "r");
+    FILE *visiblefile = fopen("visible.txt", "r");
+    FILE *namefile = fopen("name.txt", "r");
+    if(savenum==1){
+    fscanf(roomfile, "%d//", &room_count);
+    for (int i = 0; i < room_count; i++) {
+        fscanf(roomfile, "%d,%d,%d,%d,%d||", 
+            &rooms[i].startx, &rooms[i].starty, 
+            &rooms[i].length, &rooms[i].width, 
+            &rooms[i].type1);
+    }
+    fclose(roomfile);
+    fscanf(charfile, "%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,",
+        &character.point.x, &character.point.y,
+        &character.health, &character.color,
+        &character.key, &character.broken_key,
+        &character.food, &character.gold,
+        &character.difficulty,
+        &character.weapon[0], &character.weapon[1], &character.weapon[2],
+        &character.weapon[3], &character.weapon[4],
+        &character.spell[0], &character.spell[1], &character.spell[2],
+        &character.floor);
+    fclose(charfile);
+    for (int i = 0; i < 36; i++) {
+        for (int j = 0; j < 71; j++) {
+            board[i][j] = fgetc(boardfile);
+        }
+    }
+    fclose(boardfile);
+    for (int i = 0; i < 36; i++) {
+        for (int j = 0; j < 71; j++) {
+            fscanf(visiblefile, "%1d", &visible[i][j]);
+        }
+    }
+    fclose(visiblefile);
+    fscanf(namefile, "%s", name);
+    fclose(namefile);
+    clear;
+    visiblesetup(visible);
+    lightuproom(rooms[0],visible);
+    drawmap(board,visible);
+    play_game(rooms,character,board,visible,room_count,character.floor,name);
+    }
+}
+
 
 
 
@@ -1795,70 +1852,6 @@ void play_game(room rooms[8],player character,char board[36][71],int visible[36]
     }
     
 }
-
-
-void loadgame(int savenum){
-    player character;
-    room rooms[8];
-    int room_count;
-    char board[36][71];
-    int visible[36][71];
-    char name[100];
-    FILE *roomfile = fopen("rooms.txt", "r");
-    FILE *charfile = fopen("character.txt", "r");
-    FILE *boardfile = fopen("board.txt", "r");
-    FILE *visiblefile = fopen("visible.txt", "r");
-    FILE *namefile = fopen("name.txt", "r");
-    if(savenum==1){
-    fscanf(roomfile, "%d//", &room_count);
-    for (int i = 0; i < room_count; i++) {
-        fscanf(roomfile, "%d,%d,%d,%d,%d||", 
-            &rooms[i].startx, &rooms[i].starty, 
-            &rooms[i].length, &rooms[i].width, 
-            &rooms[i].type1);
-    }
-    fclose(roomfile);
-
-    // Load character data
-    fscanf(charfile, "%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,",
-        &character.point.x, &character.point.y,
-        &character.health, &character.color,
-        &character.key, &character.broken_key,
-        &character.food, &character.gold,
-        &character.difficulty,
-        &character.weapon[0], &character.weapon[1], &character.weapon[2],
-        &character.weapon[3], &character.weapon[4],
-        &character.spell[0], &character.spell[1], &character.spell[2],
-        &character.floor);
-    fclose(charfile);
-
-    // Load board data
-    for (int i = 0; i < 36; i++) {
-        for (int j = 0; j < 71; j++) {
-            board[i][j] = fgetc(boardfile);
-        }
-    }
-    fclose(boardfile);
-
-    // Load visibility data
-    for (int i = 0; i < 36; i++) {
-        for (int j = 0; j < 71; j++) {
-            fscanf(visiblefile, "%1d", &visible[i][j]);
-        }
-    }
-    fclose(visiblefile);
-
-    // Load player name
-    fscanf(namefile, "%s", name);
-    fclose(namefile);
-    clear;
-    visiblesetup(visible);
-    lightuproom(rooms[0],visible);
-    drawmap(board,visible);
-    play_game(rooms,character,board,visible,room_count,character.floor,name);
-    }
-}
-
 
 
 void BEGIN(int color,int difficulty,int floor,char name[]) {

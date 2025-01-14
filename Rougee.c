@@ -113,6 +113,54 @@ void LoadGameMenu(char name[]){
     }
 }
 
+void ScoreBoard(char name[50]){
+    clear();
+    char name1[100];
+    char leaderboards[5][110];
+    int scores[5];
+    player character;
+    for(int i=0;i<5;i++){
+    FILE charfile = fopen("character.txt", "r");
+    FILEnamefile = fopen("name.txt", "r");
+    fscanf(namefile, "%s", name1);
+    fscanf(charfile, "%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,",
+        &character.point.x, &character.point.y,
+        &character.health, &character.color,
+        &character.key, &character.broken_key,
+        &character.food, &character.gold,
+        &character.difficulty,
+        &character.weapon[0], &character.weapon[1], &character.weapon[2],
+        &character.weapon[3], &character.weapon[4],
+        &character.spell[0], &character.spell[1], &character.spell[2],
+        &character.floor);
+    scores[i]=character.gold * 10;
+    strcpy(leaderboards[i],name1);
+    }
+  for (int i=0; i<4; i++) {
+        for (int j = i + 1; j < 5; j++) {
+            if (scores[i] < scores[j]) { 
+                int temp_score = scores[i];
+                scores[i] = scores[j];
+                scores[j] = temp_score;
+                char temp_name[110];
+                strcpy(temp_name, leaderboards[i]);
+                strcpy(leaderboards[i], leaderboards[j]);
+                strcpy(leaderboards[j], temp_name);
+            }
+        }
+    }
+    for(int i=0;i<5;i++){
+        mvprintw(i,0,"%s",leaderboards[i]);
+        mvprintw(i,20,"%d",scores[i]);
+    }
+    refresh();
+    sleep(10);
+
+
+}
+
+
+
 void PreGameMenu(char name[],char password[]){
     clear();
     int colour=1,diff=2;
@@ -123,10 +171,10 @@ void PreGameMenu(char name[],char password[]){
         clear();
         refresh();
         int input;
-        attron(A_BOLD);
         mvprintw(0,1,"Welcome %s",name);
         mvprintw(1,1,"Choose an Option");
         attroff(A_BOLD);
+        attron(A_BOLD);
         attron(A_UNDERLINE);
         mvprintw(1,17,"press ENTER to confirm");
         attroff(A_UNDERLINE);
@@ -145,9 +193,14 @@ void PreGameMenu(char name[],char password[]){
         mvprintw(4,1,"Settings");
         if(choice==3)
             attroff(COLOR_PAIR(1));
+        if(choice==4)
+            attron(COLOR_PAIR(1));
+        mvprintw(5,1,"ScoreBoard");
+        if(choice==4)
+            attroff(COLOR_PAIR(1));
 
         input=getch();
-        if(input==KEY_DOWN &&  choice!=3)
+        if(input==KEY_DOWN &&  choice!=4)
             choice+=1;
         if(input==KEY_UP   && choice !=1)
             choice-=1;
@@ -158,8 +211,8 @@ void PreGameMenu(char name[],char password[]){
                 mvprintw(1,1,"PLEASE MAXIMIZE YOUR TERMINAL TO ENSURE YOU HAVE THE PROPER EXPERIENCE");
                 mvprintw(3,1,"If the game lags at any point use \"A(or any non gameplay related key\" to update it ");
                 refresh();
-                attroff(A_BOLD|A_UNDERLINE|COLOR_PAIR(2));
                 mvprintw(2,1,"game will begin in 5 seconds");
+                attroff(A_BOLD|A_UNDERLINE|COLOR_PAIR(2));
                 refresh();
                 sleep(5);
                 clear();
@@ -167,10 +220,13 @@ void PreGameMenu(char name[],char password[]){
                 BEGIN(colour,diff,1,name);
             }
             if(choice==2){
-                LoadGameMenu(name);
             }
             if(choice==3)
                 settings(&colour ,&diff);
+                LoadGameMenu(name);
+            if(choice==4){
+                ScoreBoard(name);
+            }
         }
             
     }
@@ -440,6 +496,9 @@ int main() {
         init_pair(3, COLOR_GREEN, COLOR_BLACK);
         init_pair(4,COLOR_WHITE,COLOR_RED);
         init_pair(5, COLOR_YELLOW, COLOR_BLACK);
+        init_pair(6,COLOR_BLACK,COLOR_YELLOW);
+        init_pair(7,COLOR_BLACK,COLOR_CYAN);
+        init_pair(8,COLOR_BLACK,COLOR_MAGENTA);
     }
     while(true){
         refresh();
