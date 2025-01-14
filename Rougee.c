@@ -83,6 +83,36 @@ void settings(int *color,int *difficulty){
     }
 }
 
+
+void LoadGameMenu(char name[]){
+    clear();
+    FILE *namefile=fopen("name.txt","r");
+    if(namefile==NULL){
+        mvprintw(0,0,"YOU HAVE NO SAVE FILES");
+        refresh();
+        sleep(2);
+        return;
+    }
+    mvprintw(0,0,"CHOOSE WHICH SAVE FILE YOU WANT TO LOAD by pressing 1,2 or 3");
+    char savefile[100];
+    for(int i=1;i<4;i++){
+    if(fgets(savefile,sizeof(savefile),namefile)==NULL)
+        strcpy(savefile,"NOTHING IS SAVED HERE");
+    mvprintw(i,0,"%d)%s",i,savefile);
+    }
+    refresh();
+    refresh();
+    while(true){
+        int input=getch();
+        if(input=='q')
+            return;
+        if(input=='1' || input=='2'   || input=='3'){
+            loadgame(1);
+
+        }
+    }
+}
+
 void PreGameMenu(char name[],char password[]){
     clear();
     int colour=1,diff=2;
@@ -134,14 +164,13 @@ void PreGameMenu(char name[],char password[]){
                 sleep(5);
                 clear();
                 refresh();
-                BEGIN(colour,diff);
+                BEGIN(colour,diff,1,name);
             }
             if(choice==2){
-
+                LoadGameMenu(name);
             }
             if(choice==3)
                 settings(&colour ,&diff);
-            choice=1;
         }
             
     }
@@ -409,6 +438,7 @@ int main() {
         init_pair(1, COLOR_WHITE, COLOR_GREEN);
         init_pair(2, COLOR_RED, COLOR_BLACK);
         init_pair(3, COLOR_GREEN, COLOR_BLACK);
+        init_pair(4,COLOR_WHITE,COLOR_RED);
     }
     while(true){
         refresh();

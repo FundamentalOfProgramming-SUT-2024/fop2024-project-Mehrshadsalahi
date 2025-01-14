@@ -5,7 +5,6 @@
 #include <string.h>
 
 
-
 typedef struct {
     int x;
     int y;
@@ -35,6 +34,50 @@ typedef struct {
 int randit(int a,int b){
     int ans=(rand() % (b-a+1))+a;
     return ans;
+}
+
+void debuglengwid(room rooms[],int room_count){
+    for(int i=0;i<room_count;i++){
+        mvprintw(rooms[i].startx+2,rooms[i].starty+2,"%d || %d",rooms[i].length,rooms[i].width);
+        refresh();
+    }
+}
+void loadgame(int savenum){
+
+
+
+
+
+
+
+
+
+
+
+    
+}
+
+void generateweaponandspell(char board[36][71],room rooms[],int room_count){
+    char spell[4]="hsd";  //speed=E //damage=G
+    char weapon[5]="MDWNS";
+    for(int i=0;i<room_count;i++){
+        int ran1=randit(1,5),ran2=randit(0,4);
+        if(ran1!=3)
+            continue;
+        else{
+            int lengran=randit(2,rooms[i].length-4),widran=randit(2,rooms[i].length-4);
+            board[rooms[i].starty+widran][rooms[i].startx+lengran]=weapon[ran2];
+        }
+    }
+    for(int i=0;i<room_count;i++){
+        int ran3=randit(1,10),ran4=(0,2);
+        if(ran3!=7)
+            continue;
+        else{
+            int lengran=randit(2,rooms[i].length-4),widran=randit(2,rooms[i].length-4);
+            board[rooms[i].starty+widran][rooms[i].startx+lengran]=spell[ran4];
+        }
+    }
 }
 
 void showmsg(char msg[], int color){ //green=3 //red=2 //normal=1
@@ -144,7 +187,9 @@ void spawncorridors(int room_count,room rooms[8],char board[36][71]){
         if(side==1){
             door1.x=rooms[i].startx;
             door1.y=rooms[i].starty+widran;
-            for(int j=1;j<12;j++){
+            for(int j=1;j<13;j++){
+                if(board[door1.y][door1.x-j]=='|')
+                    break;
                 if((board[door1.y][door1.x-j]=='|') && (door1.x-j>4)  && (board[door1.y][door1.x-j-1]!='_') ){
                     didithappen=1;
                     door2.x=door1.x-j;
@@ -157,7 +202,7 @@ void spawncorridors(int room_count,room rooms[8],char board[36][71]){
         if(side==2){
             door1.x=rooms[i].startx+lengran;
             door1.y=rooms[i].starty;
-            for(int j=1;j<12;j++){
+            for(int j=1;j<13;j++){
                 if((board[door1.y-j][door1.x]=='_') && door1.y-j!=0){
                     didithappen=1;
                     door2.x=door1.x;
@@ -170,7 +215,7 @@ void spawncorridors(int room_count,room rooms[8],char board[36][71]){
         if(side==3){
             door1.x=rooms[i].startx+lengran;
             door1.y=rooms[i].starty+rooms[i].width;
-            for(int j=1;j<12;j++){
+            for(int j=1;j<13;j++){
                 if((board[door1.y+j][door1.x]=='_') && door1.y+j!=34){
                     didithappen=1;
                     door2.x=door1.x;
@@ -183,7 +228,9 @@ void spawncorridors(int room_count,room rooms[8],char board[36][71]){
         if(side==4){
             door1.x=rooms[i].startx+rooms[i].length;
             door1.y=rooms[i].starty+widran;
-            for(int j=1;j<12;j++){
+            for(int j=1;j<13;j++){
+                if(board[door1.y][door1.x+j]=='_')
+                    break;
                 if((board[door1.y][door1.x+j]=='|') && (door1.x+j<66) && (board[door1.y][door1.x+j+1]!='_') ){
                     didithappen=1;
                     door2.x=door1.x+j;
@@ -206,7 +253,7 @@ void spawncorridors(int room_count,room rooms[8],char board[36][71]){
 
 
 
-void savegame(room rooms[],player character,char board[36][71],int visible[36][71]){
+void savegame(room rooms[],player character,char board[36][71],int visible[36][71],int room_count,char name[]){
     FILE *roomfile = fopen("rooms.txt", "r");
     if(roomfile == NULL)
         roomfile = fopen("rooms.txt", "w");
@@ -223,9 +270,14 @@ void savegame(room rooms[],player character,char board[36][71],int visible[36][7
     if(visiblefile == NULL)
         visiblefile = fopen("visible.txt", "w");
     fclose(visiblefile);
-    //save room
-  // roomfile=fopen("rooms.txt","a");
-    //save room
+
+    roomfile=fopen("rooms.txt","a");
+    fprintf(roomfile,"%d//",room_count);
+    for(int i=0;i<room_count;i++){
+        fprintf(roomfile,"%d,%d,%d,%d,%d||",rooms[i].startx,rooms[i].starty,rooms[i].length,rooms[i].width,rooms[i].type1);
+    }
+    fprintf(roomfile,"\n");
+    fclose(roomfile);
 
     charfile=fopen("character.txt","a");
     fprintf(charfile,"%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,\n",character.point.x,character.point.y,character.health,character.color,character.key,character.broken_key,
@@ -246,13 +298,13 @@ void savegame(room rooms[],player character,char board[36][71],int visible[36][7
             fprintf(visiblefile,"%d",visible[i][j]);
     fprintf(visiblefile,"\n");
     fclose(visiblefile);
-
-
-
-
-
-
-
+    FILE *namefile = fopen("name.txt", "r");
+    if(namefile == NULL)
+        namefile = fopen("name.txt", "w");
+    fclose(namefile);
+    namefile=fopen("name.txt","a");
+    fprintf(namefile,"%s\n",name);
+    fclose(namefile);
 }
 
 
@@ -352,10 +404,18 @@ void showmap(char board[36][71],int visible[36][71]) {
 
 void drawmap(char board[36][71],int visible[36][71]) {
     clear();
-        for (int j = 0; j < 70; j++) {
+        for (int j=0; j<70; j++) {
     for (int i=0;i<35;i++) {
             if(visible[i][j]){
+            if(board[i][j]=='M' || board[i][j]=='D' || board[i][j]=='W'  || board[i][j]=='N'  || board[i][j]=='S' )
+                attron(COLOR_PAIR(2));
+            if(board[i][j]=='d' || board[i][j]=='s' || board[i][j]=='h')
+                attron(COLOR_PAIR(2));
             mvprintw(i,j,"%c",board[i][j]);
+            if(board[i][j]=='M' || board[i][j]=='D' || board[i][j]=='W'  || board[i][j]=='N'  || board[i][j]=='S' )
+                attroff(COLOR_PAIR(2));
+            if(board[i][j]=='d' || board[i][j]=='s' || board[i][j]=='h')
+                attroff(COLOR_PAIR(2));
             }
         }
     }
@@ -366,7 +426,15 @@ void drawmapfalse(char board[36][71]) {
     clear();
         for (int j = 0; j < 70; j++) {
     for (int i=0;i<35;i++) {
+            if(board[i][j]=='M' || board[i][j]=='D' || board[i][j]=='W'  || board[i][j]=='N'  || board[i][j]=='S' )
+                attron(COLOR_PAIR(2));
+            if(board[i][j]=='d' || board[i][j]=='s' || board[i][j]=='h')
+                attron(COLOR_PAIR(2));
             mvprintw(i,j,"%c",board[i][j]);
+            if(board[i][j]=='M' || board[i][j]=='D' || board[i][j]=='W'  || board[i][j]=='N'  || board[i][j]=='S' )
+                attroff(COLOR_PAIR(2));
+            if(board[i][j]=='d' || board[i][j]=='s' || board[i][j]=='h')
+                attroff(COLOR_PAIR(2));
         }
     }
     refresh();
@@ -403,7 +471,7 @@ void lightupplayersroom(int visible[36][71],int x,int y,room rooms[8],int room_c
 }
 
 
-void play_game(room rooms[8],player character,char board[36][71],int visible[36][71],int room_count){
+void play_game(room rooms[8],player character,char board[36][71],int visible[36][71],int room_count,int floor,char name[]){
     nodelay(stdscr, TRUE);
     int ismaptrue=1;
     int wasitadoor=0;
@@ -412,8 +480,12 @@ void play_game(room rooms[8],player character,char board[36][71],int visible[36]
         refresh();
         int order='#';
         order=getch();
+ //       if(order=='`'){
+//            debuglengwid(rooms,room_count);
+ //       }
+
         if(order=='s' || order=='S'){
-            savegame(rooms,character,board,visible);
+            savegame(rooms,character,board,visible,room_count,name);
             showmsg("Game has been saved",3);
         }
         if( (order=='m' || order=='M')  && ismaptrue ){
@@ -775,7 +847,7 @@ void visiblesetup(int visible[36][71]){
 
 
 
-void BEGIN(int color,int difficulty) {
+void BEGIN(int color,int difficulty,int floor,char name[]) {
     player character;
     room rooms[8];
     int q = 6+(rand() % 3);
@@ -816,6 +888,7 @@ void BEGIN(int color,int difficulty) {
         }
     }
     spawncorridors(room_count,rooms,board);
+    generateweaponandspell(board,rooms,room_count);
     int x,y;
     x=randit(rooms[0].startx+1,rooms[0].startx+rooms[0].length - 3);
     y=randit(rooms[0].starty+1,rooms[0].starty+rooms[0].width - 3);
@@ -848,7 +921,7 @@ void BEGIN(int color,int difficulty) {
     character.weapon[4]=0;
     character.weapon[5]=0;
     character.spell[3]=0;
-    play_game(rooms,character,board,visible,room_count);
+    play_game(rooms,character,board,visible,room_count,floor,name);
 }
 //int main() {
  //   initscr();
