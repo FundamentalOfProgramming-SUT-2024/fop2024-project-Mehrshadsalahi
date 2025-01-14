@@ -83,15 +83,9 @@ void settings(int *color,int *difficulty){
     }
 }
 
-
 void PreGameMenu(char name[],char password[]){
     clear();
-    player character;
-    character.color=1;
-    character.difficulty=2;
-    character.gold=0;
-    character.food=0;
-    character.key=0;
+    int colour=1,diff=2;
     noecho();
     curs_set(FALSE);
     int choice=1;
@@ -132,6 +126,7 @@ void PreGameMenu(char name[],char password[]){
                 clear();
                 attron(A_BOLD|A_UNDERLINE|COLOR_PAIR(2));
                 mvprintw(1,1,"PLEASE MAXIMIZE YOUR TERMINAL TO ENSURE YOU HAVE THE PROPER EXPERIENCE");
+                mvprintw(3,1,"If the game lags at any point use \"A(or any non gameplay related key\" to update it ");
                 refresh();
                 attroff(A_BOLD|A_UNDERLINE|COLOR_PAIR(2));
                 mvprintw(2,1,"game will begin in 5 seconds");
@@ -139,19 +134,19 @@ void PreGameMenu(char name[],char password[]){
                 sleep(5);
                 clear();
                 refresh();
-                BEGIN(character);
+                BEGIN(colour,diff);
             }
             if(choice==2){
 
             }
             if(choice==3)
-                settings(&character.color ,&character.difficulty);
+                settings(&colour ,&diff);
             choice=1;
         }
             
     }
-
 }
+
 
 int first_menu(){
     int return_value=1;
