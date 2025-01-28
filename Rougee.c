@@ -3,7 +3,11 @@
 #include <unistd.h>
 #include <time.h>
 #include <string.h>
+#include <limits.h>
+#include <math.h>
 #include "GameStart.h"
+#include <locale.h>
+//#include "test2.h"
 
 
 
@@ -113,53 +117,53 @@ void LoadGameMenu(char name[]){
     }
 }
 
-void ScoreBoard(char name[50]){
-    clear();
-    char name1[100];
-    char leaderboards[5][110];
-    int scores[5];
-    player character;
-    for(int i=0;i<5;i++){
-    FILE charfile = fopen("character.txt", "r");
-    FILEnamefile = fopen("name.txt", "r");
-    fscanf(namefile, "%s", name1);
-    fscanf(charfile, "%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,",
-        &character.point.x, &character.point.y,
-        &character.health, &character.color,
-        &character.key, &character.broken_key,
-        &character.food, &character.gold,
-        &character.difficulty,
-        &character.weapon[0], &character.weapon[1], &character.weapon[2],
-        &character.weapon[3], &character.weapon[4],
-        &character.spell[0], &character.spell[1], &character.spell[2],
-        &character.floor);
-    scores[i]=character.gold * 10;
-    strcpy(leaderboards[i],name1);
-    }
-  for (int i=0; i<4; i++) {
-        for (int j = i + 1; j < 5; j++) {
-            if (scores[i] < scores[j]) { 
-                int temp_score = scores[i];
-                scores[i] = scores[j];
-                scores[j] = temp_score;
-                char temp_name[110];
-                strcpy(temp_name, leaderboards[i]);
-                strcpy(leaderboards[i], leaderboards[j]);
-                strcpy(leaderboards[j], temp_name);
-            }
-        }
-    }
-    for(int i=0;i<5;i++){
-        mvprintw(i,0,"%s",leaderboards[i]);
-        mvprintw(i,20,"%d",scores[i]);
-    }
-    refresh();
-    sleep(10);
+// void ScoreBoard(char name[50]){
+//     clear();
+//     char name1[100];
+//     char leaderboards[5][110];
+//     int scores[5];
+//     player character;
+//     for(int i=0;i<5;i++){
+//     FILE charfile = fopen("character.txt", "r");
+//     FILEnamefile = fopen("name.txt", "r");
+//     fscanf(namefile, "%s", name1);
+//     fscanf(charfile, "%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,",
+//         &character.point.x, &character.point.y,
+//         &character.health, &character.color,
+//         &character.key, &character.broken_key,
+//         &character.food, &character.gold,
+//         &character.difficulty,
+//         &character.weapon[0], &character.weapon[1], &character.weapon[2],
+//         &character.weapon[3], &character.weapon[4],
+//         &character.spell[0], &character.spell[1], &character.spell[2],
+//         &character.floor);
+//     scores[i]=character.gold * 10;
+//     strcpy(leaderboards[i],name1);
+//     }
+//   for (int i=0; i<4; i++) {
+//         for (int j = i + 1; j < 5; j++) {
+//             if (scores[i] < scores[j]) { 
+//                 int temp_score = scores[i];
+//                 scores[i] = scores[j];
+//                 scores[j] = temp_score;
+//                 char temp_name[110];
+//                 strcpy(temp_name, leaderboards[i]);
+//                 strcpy(leaderboards[i], leaderboards[j]);
+//                 strcpy(leaderboards[j], temp_name);
+//             }
+//         }
+//     }
+//     for(int i=0;i<5;i++){
+//         mvprintw(i,0,"%s",leaderboards[i]);
+//         mvprintw(i,20,"%d",scores[i]);
+//     }
+//     refresh();
+//     sleep(10);
 
 
-}
+// }
 
-
+//
 
 void PreGameMenu(char name[],char password[]){
     clear();
@@ -220,12 +224,12 @@ void PreGameMenu(char name[],char password[]){
                 BEGIN(colour,diff,1,name);
             }
             if(choice==2){
+                LoadGameMenu(name);
             }
             if(choice==3)
                 settings(&colour ,&diff);
-                LoadGameMenu(name);
             if(choice==4){
-                ScoreBoard(name);
+  //              ScoreBoard(name);
             }
         }
             
@@ -485,6 +489,7 @@ void login_menu(){
     curs_set(false);
 }
 int main() {
+    setlocale(LC_ALL, "");
     initscr();
     srand(time(NULL)); 
     cbreak();
@@ -496,9 +501,11 @@ int main() {
         init_pair(3, COLOR_GREEN, COLOR_BLACK);
         init_pair(4,COLOR_WHITE,COLOR_RED);
         init_pair(5, COLOR_YELLOW, COLOR_BLACK);
-        init_pair(6,COLOR_BLACK,COLOR_YELLOW);
-        init_pair(7,COLOR_BLACK,COLOR_CYAN);
-        init_pair(8,COLOR_BLACK,COLOR_MAGENTA);
+        init_pair(6,COLOR_WHITE,COLOR_YELLOW);
+        init_pair(7,COLOR_WHITE,COLOR_CYAN);
+        init_pair(8,COLOR_CYAN,COLOR_MAGENTA);
+        init_pair(9,COLOR_WHITE,COLOR_BLACK);
+        init_pair(10,COLOR_CYAN,COLOR_BLACK);
     }
     while(true){
         refresh();
