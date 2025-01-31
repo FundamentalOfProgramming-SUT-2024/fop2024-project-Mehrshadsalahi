@@ -108,16 +108,16 @@ void spawnstair(char board[36][71],room rooms[8],int room_count){       // 1   2
 
 }
 
-void debuglengwid(room rooms[],int room_count){
-    for(int i=0;i<room_count;i++){
-        mvprintw(rooms[i].startx+2,rooms[i].starty+2,"%d || %d",rooms[i].length,rooms[i].width);
-        refresh();
-    }
-}
+//void debuglengwid(room rooms[],int room_count){
+//    for(int i=0;i<room_count;i++){
+//        mvprintw(rooms[i].startx+2,rooms[i].starty+2,"%d || %d",rooms[i].length,rooms[i].width);
+//        refresh();
+//    }
+//}
 
 void generateweaponandspell(char board[36][71],room rooms[],int room_count){
     char spell[4]="hsd"; 
-    char weapon[5]="MDWNS";
+    char weapon[5]="MAWNR"; //A=dagger R=sword
     for(int i=0;i<room_count;i++){
         int ran1=randit(1,5),ran2=randit(1,4);
         if(ran1!=3)
@@ -232,7 +232,7 @@ void savegame(room rooms[],player character,char board[36][71],int visible[36][7
 void drawcharacter(char board[36][71],int color,int x , int y){
     attron(A_BOLD);
     board[y][x]='P';
-    const char *utfplayer="★";
+    const char *utfplayer="⚚";
     if(color==2)
         attron(COLOR_PAIR(2));
     if(color==3)
@@ -314,33 +314,61 @@ void setupboard(char board[36][71],int visible[36][71]) {
 }
 
 
-void showmap(char board[36][71],int visible[36][71]) {
-    clear();
-        for (int j = 0; j < 70; j++) {
-    for (int i=0;i<35;i++) {
-            mvprintw(i,j,"%c",board[i][j]);
-        }
-    }
-    refresh();
-    getch();
-}
+//void showmap(char board[36][71],int visible[36][71]) {
+//    clear();
+//        for (int j = 0; j < 70; j++) {
+//    for (int i=0;i<35;i++) {
+//            mvprintw(i,j,"%c",board[i][j]);
+//        }
+//    }
+//    refresh();
+//    getch();
+//}
 
 void drawmap(char board[36][71],int visible[36][71]) {
+    const char *Mace="⚒️";
+    const char *Dagger="†";
+    const char *MagicWand="✪";
+    const char *NormalArrow="➻";
+    const char *Sword="‡";
     clear();
         for (int j=0; j<70; j++) {
     for (int i=0;i<35;i++) {
             if(visible[i][j]){
+            
+            if(board[i][j]=='M'){
+                mvprintw(i,j,"%s",Mace);
+                continue;
+            }
+            if(board[i][j]=='A'){
+                mvprintw(i,j,"%s",Dagger);
+                continue;
+            }
+            if(board[i][j]=='W'){
+                attron(COLOR_PAIR(10));
+                mvprintw(i,j,"%s",MagicWand);
+                attroff(COLOR_PAIR(10));
+                continue;
+            }
+            if(board[i][j]=='N'){
+                mvprintw(i,j,"%s",NormalArrow);
+                continue;
+            }
+            if(board[i][j]=='R'){
+                mvprintw(i,j,"%s",Sword);
+                continue;
+            }
             if(board[i][j]=='F')
                 attron(COLOR_PAIR(3));
             if(board[i][j]== 'g'  || board[i][j]=='G')
                 attron(COLOR_PAIR(5));
-            if(board[i][j]=='M' || board[i][j]=='D' || board[i][j]=='W'  || board[i][j]=='N'  || board[i][j]=='S' )
-                attron(COLOR_PAIR(2));
-            if(board[i][j]=='d' || board[i][j]=='s' || board[i][j]=='h')
+//           if(board[i][j]=='M' || board[i][j]=='D' || board[i][j]=='W'  || board[i][j]=='N'  || board[i][j]=='S' )
+//               attron(COLOR_PAIR(2));
+           if(board[i][j]=='d' || board[i][j]=='s' || board[i][j]=='h')
                 attron(COLOR_PAIR(8));
             mvprintw(i,j,"%c",board[i][j]);
-            if(board[i][j]=='M' || board[i][j]=='D' || board[i][j]=='W'  || board[i][j]=='N'  || board[i][j]=='S' )
-                attroff(COLOR_PAIR(2));
+//            if(board[i][j]=='M' || board[i][j]=='D' || board[i][j]=='W'  || board[i][j]=='N'  || board[i][j]=='S' )
+//                attroff(COLOR_PAIR(2));
             if(board[i][j]=='d' || board[i][j]=='s' || board[i][j]=='h')
                 attroff(COLOR_PAIR(8));
             if(board[i][j]== 'g'  || board[i][j]=='G')
@@ -351,12 +379,40 @@ void drawmap(char board[36][71],int visible[36][71]) {
         }
     }
     refresh();
-    getch();
+//    getch();
 }
 void drawmapfalse(char board[36][71]) {
+    const char *Mace="⚒️";
+    const char *Dagger="†";
+    const char *MagicWand="✪";
+    const char *NormalArrow="➻";
+    const char *Sword="‡";
     clear();
-        for (int j = 0; j < 70; j++) {
+        for (int j=0; j<70; j++) {
     for (int i=0;i<35;i++) {
+            
+            if(board[i][j]=='M'){
+                mvprintw(i,j,"%s",Mace);
+                continue;
+            }
+            if(board[i][j]=='A'){
+                mvprintw(i,j,"%s",Dagger);
+                continue;
+            }
+            if(board[i][j]=='W'){
+                attron(COLOR_PAIR(10));
+                mvprintw(i,j,"%s",MagicWand);
+                attroff(COLOR_PAIR(10));
+                continue;
+            }
+            if(board[i][j]=='N'){
+                mvprintw(i,j,"%s",NormalArrow);
+                continue;
+            }
+            if(board[i][j]=='R'){
+                mvprintw(i,j,"%s",Sword);
+                continue;
+            }
             if(board[i][j]=='F')
                 attron(COLOR_PAIR(3));
             if(board[i][j]== 'g'  || board[i][j]=='G')
@@ -377,7 +433,7 @@ void drawmapfalse(char board[36][71]) {
         }
     }
     refresh();
-    getch();
+//    getch();
 }
 
 
@@ -614,7 +670,7 @@ int spellmenu(player *character){
 
 void weaponsmenu(player *character){
     nodelay(stdscr,FALSE);
-    int order;
+    int order='M';
     while(true){
     if(strcmp(character->equipped_weapon,"Mace")==0)
         order='M';
@@ -688,6 +744,8 @@ void gameoverscreen(player character,char name[]){
     attroff(A_BOLD| COLOR_PAIR(2));
     mvprintw(21,20,"press any key to close the program");
     refresh();
+    sleep(2);
+    nodelay(stdscr,FALSE);
     getch();
     clear();
     exit(0);
@@ -722,7 +780,7 @@ void play_game(room rooms[8],player character,char board[36][71],int visible[36]
             showmsg("You Ate some Food!",3);
         }
 
-        if(order=='p' || order=='P'){
+        if(order=='i' || order=='I'){
             clear();
             refresh();
             weaponsmenu(&character);
@@ -761,6 +819,10 @@ void play_game(room rooms[8],player character,char board[36][71],int visible[36]
             drawcharacter(board,character.color,character.point.x,character.point.y);
             refresh();
             ismaptrue=1;
+        }
+        if (order=='W' || order=='w'){
+            showmsg("You put your weapon in your backpack",1);
+            strcpy(character.equipped_weapon,"Nothing");
         }
         if(order== '7'){
             if(board[character.point.y -1][character.point.x -1]=='.'){
@@ -1909,27 +1971,449 @@ void play_game(room rooms[8],player character,char board[36][71],int visible[36]
             
             
         }
-
-
-
-
-
-
+        if(order== '7' && !didyoumove){
+            if(board[character.point.y -1][character.point.x -1]=='A' || board[character.point.y -1][character.point.x -1]=='W' || board[character.point.y -1][character.point.x -1]=='N' 
+               || board[character.point.y -1][character.point.x -1]=='R' || board[character.point.y -1][character.point.x -1]=='d'|| board[character.point.y -1][character.point.x -1]=='s'
+               ||  board[character.point.y -1][character.point.x -1]=='h'){
+                didyoumove=1;
+                if(!wasitadoor)
+                    board[character.point.y][character.point.x]='.';
+                if(wasitadoor)
+                    board[character.point.y][character.point.x]='+';
+                if(wasitastair)
+                    board[character.point.y][character.point.x]='<';
+                 wasitadoor=0;
+                 wasitastair=0;
+                clear();
+                if(board[character.point.y -1][character.point.x -1]=='A' ){
+                    showmsg("You Picked up 10 Daggers!",2);
+                    character.weapon[1]+=10;
+                }
+                if(board[character.point.y -1][character.point.x -1]=='W' ){
+                    showmsg("You Picked up 8 Magic Wands!",2);
+                    character.weapon[2]+=8;
+                }
+                if(board[character.point.y -1][character.point.x -1]=='N' ){
+                    showmsg("You Picked up 20 Arrows!",2);
+                    character.weapon[3]+=20;
+                }
+                if(board[character.point.y -1][character.point.x -1]=='R' ){
+                    showmsg("You Picked up a Sword!",2);
+                    character.weapon[4]+=1;
+                }
+                if(board[character.point.y -1][character.point.x -1]=='d' ){
+                    showmsg("You found a Damage Potion!",10);
+                    character.spell[2]+=1;
+                }
+                if(board[character.point.y -1][character.point.x -1]=='s' ){
+                    showmsg("You found a Speed Potion!",10);
+                    character.spell[1]+=1;
+                }
+                if(board[character.point.y -1][character.point.x -1]=='h' ){
+                    showmsg("You found a Health Potion!",10);
+                    character.spell[0]+=1;
+                }
+                refresh();
+                character.point.y-=1;
+                character.point.x-=1;
+                if(ismaptrue)
+                    drawmap(board,visible);
+                else
+                    drawmapfalse(board);
+                refresh();
+                drawcharacter(board,character.color,character.point.x,character.point.y);
+                refresh();
+            }
+        }
+        if(order== '8' && !didyoumove){
+            if(board[character.point.y -1][character.point.x]=='A' || board[character.point.y -1][character.point.x]=='W' || board[character.point.y -1][character.point.x]=='N' 
+               || board[character.point.y -1][character.point.x]=='R' || board[character.point.y -1][character.point.x]=='d'|| board[character.point.y -1][character.point.x]=='s'
+               ||  board[character.point.y -1][character.point.x]=='h'){
+                didyoumove=1;
+                if(!wasitadoor)
+                    board[character.point.y][character.point.x]='.';
+                if(wasitadoor)
+                    board[character.point.y][character.point.x]='+';
+                if(wasitastair)
+                    board[character.point.y][character.point.x]='<';
+                 wasitadoor=0;
+                 wasitastair=0;
+                clear();
+                if(board[character.point.y -1][character.point.x]=='A' ){
+                    showmsg("You Picked up 10 Daggers!",2);
+                    character.weapon[1]+=10;
+                }
+                if(board[character.point.y -1][character.point.x]=='W' ){
+                    showmsg("You Picked up 8 Magic Wands!",2);
+                    character.weapon[2]+=8;
+                }
+                if(board[character.point.y -1][character.point.x]=='N' ){
+                    showmsg("You Picked up 20 Arrows!",2);
+                    character.weapon[3]+=20;
+                }
+                if(board[character.point.y -1][character.point.x]=='R' ){
+                    showmsg("You Picked up a Sword!",2);
+                    character.weapon[4]+=1;
+                }
+                if(board[character.point.y -1][character.point.x]=='d' ){
+                    showmsg("You found a Damage Potion!",10);
+                    character.spell[2]+=1;
+                }
+                if(board[character.point.y -1][character.point.x]=='s' ){
+                    showmsg("You found a Speed Potion!",10);
+                    character.spell[1]+=1;
+                }
+                if(board[character.point.y -1][character.point.x]=='h' ){
+                    showmsg("You found a Health Potion!",10);
+                    character.spell[0]+=1;
+                }
+                refresh();
+                character.point.y-=1;
+                if(ismaptrue)
+                    drawmap(board,visible);
+                else
+                    drawmapfalse(board);
+                refresh();
+                drawcharacter(board,character.color,character.point.x,character.point.y);
+                refresh();
+            }
+        }
+        if(order== '9' && !didyoumove){
+            if(board[character.point.y -1][character.point.x+1]=='A' || board[character.point.y -1][character.point.x+1]=='W' || board[character.point.y -1][character.point.x+1]=='N' 
+               || board[character.point.y -1][character.point.x+1]=='R' || board[character.point.y -1][character.point.x+1]=='d'|| board[character.point.y -1][character.point.x+1]=='s'
+               ||  board[character.point.y -1][character.point.x+1]=='h'){
+                didyoumove=1;
+                if(!wasitadoor)
+                    board[character.point.y][character.point.x]='.';
+                if(wasitadoor)
+                    board[character.point.y][character.point.x]='+';
+                if(wasitastair)
+                    board[character.point.y][character.point.x]='<';
+                 wasitadoor=0;
+                 wasitastair=0;
+                clear();
+                if(board[character.point.y -1][character.point.x+1]=='A' ){
+                    showmsg("You Picked up 10 Daggers!",2);
+                    character.weapon[1]+=10;
+                }
+                if(board[character.point.y -1][character.point.x+1]=='W' ){
+                    showmsg("You Picked up 8 Magic Wands!",2);
+                    character.weapon[2]+=8;
+                }
+                if(board[character.point.y -1][character.point.x+1]=='N' ){
+                    showmsg("You Picked up 20 Arrows!",2);
+                    character.weapon[3]+=20;
+                }
+                if(board[character.point.y -1][character.point.x+1]=='R' ){
+                    showmsg("You Picked up a Sword!",2);
+                    character.weapon[4]+=1;
+                }
+                if(board[character.point.y -1][character.point.x+1]=='d' ){
+                    showmsg("You found a Damage Potion!",10);
+                    character.spell[2]+=1;
+                }
+                if(board[character.point.y -1][character.point.x+1]=='s' ){
+                    showmsg("You found a Speed Potion!",10);
+                    character.spell[1]+=1;
+                }
+                if(board[character.point.y -1][character.point.x+1]=='h' ){
+                    showmsg("You found a Health Potion!",10);
+                    character.spell[0]+=1;
+                }
+                refresh();
+                character.point.y-=1;
+                character.point.x+=1;
+                if(ismaptrue)
+                    drawmap(board,visible);
+                else
+                    drawmapfalse(board);
+                refresh();
+                drawcharacter(board,character.color,character.point.x,character.point.y);
+                refresh();
+            }
+        }
+        if(order== '4' && !didyoumove){
+            if(board[character.point.y][character.point.x-1]=='A' || board[character.point.y][character.point.x-1]=='W' || board[character.point.y][character.point.x-1]=='N' 
+               || board[character.point.y][character.point.x-1]=='R' || board[character.point.y][character.point.x-1]=='d'|| board[character.point.y][character.point.x-1]=='s'
+               ||  board[character.point.y][character.point.x-1]=='h'){
+                didyoumove=1;
+                if(!wasitadoor)
+                    board[character.point.y][character.point.x]='.';
+                if(wasitadoor)
+                    board[character.point.y][character.point.x]='+';
+                if(wasitastair)
+                    board[character.point.y][character.point.x]='<';
+                 wasitadoor=0;
+                 wasitastair=0;
+                clear();
+                if(board[character.point.y][character.point.x-1]=='A' ){
+                    showmsg("You Picked up 10 Daggers!",2);
+                    character.weapon[1]+=10;
+                }
+                if(board[character.point.y][character.point.x-1]=='W' ){
+                    showmsg("You Picked up 8 Magic Wands!",2);
+                    character.weapon[2]+=8;
+                }
+                if(board[character.point.y][character.point.x-1]=='N' ){
+                    showmsg("You Picked up 20 Arrows!",2);
+                    character.weapon[3]+=20;
+                }
+                if(board[character.point.y][character.point.x-1]=='R' ){
+                    showmsg("You Picked up a Sword!",2);
+                    character.weapon[4]+=1;
+                }
+                if(board[character.point.y][character.point.x-1]=='d' ){
+                    showmsg("You found a Damage Potion!",10);
+                    character.spell[2]+=1;
+                }
+                if(board[character.point.y][character.point.x-1]=='s' ){
+                    showmsg("You found a Speed Potion!",10);
+                    character.spell[1]+=1;
+                }
+                if(board[character.point.y][character.point.x-1]=='h' ){
+                    showmsg("You found a Health Potion!",10);
+                    character.spell[0]+=1;
+                }
+                refresh();
+                character.point.x-=1;
+                if(ismaptrue)
+                    drawmap(board,visible);
+                else
+                    drawmapfalse(board);
+                refresh();
+                drawcharacter(board,character.color,character.point.x,character.point.y);
+                refresh();
+            }
+        }
+        if(order== '6' && !didyoumove){
+            if(board[character.point.y][character.point.x+1]=='A' || board[character.point.y][character.point.x+1]=='W' || board[character.point.y][character.point.x+1]=='N' 
+               || board[character.point.y][character.point.x+1]=='R' || board[character.point.y][character.point.x+1]=='d'|| board[character.point.y][character.point.x+1]=='s'
+               ||  board[character.point.y][character.point.x+1]=='h'){
+                didyoumove=1;
+                if(!wasitadoor)
+                    board[character.point.y][character.point.x]='.';
+                if(wasitadoor)
+                    board[character.point.y][character.point.x]='+';
+                if(wasitastair)
+                    board[character.point.y][character.point.x]='<';
+                 wasitadoor=0;
+                 wasitastair=0;
+                clear();
+                if(board[character.point.y][character.point.x+1]=='A' ){
+                    showmsg("You Picked up 10 Daggers!",2);
+                    character.weapon[1]+=10;
+                }
+                if(board[character.point.y][character.point.x+1]=='W' ){
+                    showmsg("You Picked up 8 Magic Wands!",2);
+                    character.weapon[2]+=8;
+                }
+                if(board[character.point.y][character.point.x+1]=='N' ){
+                    showmsg("You Picked up 20 Arrows!",2);
+                    character.weapon[3]+=20;
+                }
+                if(board[character.point.y][character.point.x+1]=='R' ){
+                    showmsg("You Picked up a Sword!",2);
+                    character.weapon[4]+=1;
+                }
+                if(board[character.point.y][character.point.x+1]=='d' ){
+                    showmsg("You found a Damage Potion!",10);
+                    character.spell[2]+=1;
+                }
+                if(board[character.point.y][character.point.x+1]=='s' ){
+                    showmsg("You found a Speed Potion!",10);
+                    character.spell[1]+=1;
+                }
+                if(board[character.point.y][character.point.x+1]=='h' ){
+                    showmsg("You found a Health Potion!",10);
+                    character.spell[0]+=1;
+                }
+                refresh();
+                character.point.x+=1;
+                if(ismaptrue)
+                    drawmap(board,visible);
+                else
+                    drawmapfalse(board);
+                refresh();
+                drawcharacter(board,character.color,character.point.x,character.point.y);
+                refresh();
+            }
+        }
+        if(order== '1' && !didyoumove){
+            if(board[character.point.y+1][character.point.x-1]=='A' || board[character.point.y+1][character.point.x-1]=='W' || board[character.point.y+1][character.point.x-1]=='N' 
+               || board[character.point.y+1][character.point.x-1]=='R' || board[character.point.y+1][character.point.x-1]=='d'|| board[character.point.y+1][character.point.x-1]=='s'
+               ||  board[character.point.y+1][character.point.x-1]=='h'){
+                didyoumove=1;
+                if(!wasitadoor)
+                    board[character.point.y][character.point.x]='.';
+                if(wasitadoor)
+                    board[character.point.y][character.point.x]='+';
+                if(wasitastair)
+                    board[character.point.y][character.point.x]='<';
+                 wasitadoor=0;
+                 wasitastair=0;
+                clear();
+                if(board[character.point.y+1][character.point.x-1]=='A' ){
+                    showmsg("You Picked up 10 Daggers!",2);
+                    character.weapon[1]+=10;
+                }
+                if(board[character.point.y+1][character.point.x-1]=='W' ){
+                    showmsg("You Picked up 8 Magic Wands!",2);
+                    character.weapon[2]+=8;
+                }
+                if(board[character.point.y+1][character.point.x-1]=='N' ){
+                    showmsg("You Picked up 20 Arrows!",2);
+                    character.weapon[3]+=20;
+                }
+                if(board[character.point.y+1][character.point.x-1]=='R' ){
+                    showmsg("You Picked up a Sword!",2);
+                    character.weapon[4]+=1;
+                }
+                if(board[character.point.y+1][character.point.x-1]=='d' ){
+                    showmsg("You found a Damage Potion!",10);
+                    character.spell[2]+=1;
+                }
+                if(board[character.point.y+1][character.point.x-1]=='s' ){
+                    showmsg("You found a Speed Potion!",10);
+                    character.spell[1]+=1;
+                }
+                if(board[character.point.y+1][character.point.x-1]=='h' ){
+                    showmsg("You found a Health Potion!",10);
+                    character.spell[0]+=1;
+                }
+                refresh();
+                character.point.x-=1;
+                character.point.y+=1;
+                if(ismaptrue)
+                    drawmap(board,visible);
+                else
+                    drawmapfalse(board);
+                refresh();
+                drawcharacter(board,character.color,character.point.x,character.point.y);
+                refresh();
+            }
+        }
+        if(order== '2' && !didyoumove){
+            if(board[character.point.y+1][character.point.x]=='A' || board[character.point.y+1][character.point.x]=='W' || board[character.point.y+1][character.point.x]=='N' 
+               || board[character.point.y+1][character.point.x]=='R' || board[character.point.y+1][character.point.x]=='d'|| board[character.point.y+1][character.point.x]=='s'
+               ||  board[character.point.y+1][character.point.x]=='h'){
+                didyoumove=1;
+                if(!wasitadoor)
+                    board[character.point.y][character.point.x]='.';
+                if(wasitadoor)
+                    board[character.point.y][character.point.x]='+';
+                if(wasitastair)
+                    board[character.point.y][character.point.x]='<';
+                 wasitadoor=0;
+                 wasitastair=0;
+                clear();
+                if(board[character.point.y+1][character.point.x]=='A' ){
+                    showmsg("You Picked up 10 Daggers!",2);
+                    character.weapon[1]+=10;
+                }
+                if(board[character.point.y+1][character.point.x]=='W' ){
+                    showmsg("You Picked up 8 Magic Wands!",2);
+                    character.weapon[2]+=8;
+                }
+                if(board[character.point.y+1][character.point.x]=='N' ){
+                    showmsg("You Picked up 20 Arrows!",2);
+                    character.weapon[3]+=20;
+                }
+                if(board[character.point.y+1][character.point.x]=='R' ){
+                    showmsg("You Picked up a Sword!",2);
+                    character.weapon[4]+=1;
+                }
+                if(board[character.point.y+1][character.point.x]=='d' ){
+                    showmsg("You found a Damage Potion!",10);
+                    character.spell[2]+=1;
+                }
+                if(board[character.point.y+1][character.point.x]=='s' ){
+                    showmsg("You found a Speed Potion!",10);
+                    character.spell[1]+=1;
+                }
+                if(board[character.point.y+1][character.point.x]=='h' ){
+                    showmsg("You found a Health Potion!",10);
+                    character.spell[0]+=1;
+                }
+                refresh();
+                character.point.y+=1;
+                if(ismaptrue)
+                    drawmap(board,visible);
+                else
+                    drawmapfalse(board);
+                refresh();
+                drawcharacter(board,character.color,character.point.x,character.point.y);
+                refresh();
+            }
+        }
+        if(order== '3' && !didyoumove){
+            if(board[character.point.y+1][character.point.x+1]=='A' || board[character.point.y+1][character.point.x+1]=='W' || board[character.point.y+1][character.point.x+1]=='N' 
+               || board[character.point.y+1][character.point.x+1]=='R' || board[character.point.y+1][character.point.x+1]=='d'|| board[character.point.y+1][character.point.x+1]=='s'
+               ||  board[character.point.y+1][character.point.x+1]=='h'){
+                didyoumove=1;
+                if(!wasitadoor)
+                    board[character.point.y][character.point.x]='.';
+                if(wasitadoor)
+                    board[character.point.y][character.point.x]='+';
+                if(wasitastair)
+                    board[character.point.y][character.point.x]='<';
+                 wasitadoor=0;
+                 wasitastair=0;
+                clear();
+                if(board[character.point.y+1][character.point.x+1]=='A' ){
+                    showmsg("You Picked up 10 Daggers!",2);
+                    character.weapon[1]+=10;
+                }
+                if(board[character.point.y+1][character.point.x+1]=='W' ){
+                    showmsg("You Picked up 8 Magic Wands!",2);
+                    character.weapon[2]+=8;
+                }
+                if(board[character.point.y+1][character.point.x+1]=='N' ){
+                    showmsg("You Picked up 20 Arrows!",2);
+                    character.weapon[3]+=20;
+                }
+                if(board[character.point.y+1][character.point.x+1]=='R' ){
+                    showmsg("You Picked up a Sword!",2);
+                    character.weapon[4]+=1;
+                }
+                if(board[character.point.y+1][character.point.x+1]=='d' ){
+                    showmsg("You found a Damage Potion!",10);
+                    character.spell[2]+=1;
+                }
+                if(board[character.point.y+1][character.point.x+1]=='s' ){
+                    showmsg("You found a Speed Potion!",10);
+                    character.spell[1]+=1;
+                }
+                if(board[character.point.y+1][character.point.x+1]=='h' ){
+                    showmsg("You found a Health Potion!",10);
+                    character.spell[0]+=1;
+                }
+                refresh();
+                character.point.y+=1;
+                character.point.x+=1;
+                if(ismaptrue)
+                    drawmap(board,visible);
+                else
+                    drawmapfalse(board);
+                refresh();
+                drawcharacter(board,character.color,character.point.x,character.point.y);
+                refresh();
+            }
+        }
 
 
     if(didyoumove)
         time++;
-    if(time%4==1 && character.food_status==4 && character.health!=20  && WHENEATFOOD!=time){
+    if(time%4==2 && character.food_status==4 && character.health!=20  && WHENEATFOOD!=time){
         character.health++;
         WHENEATFOOD=time;
         showmsg("You recovered some Health!",3);
     }
-    if(time%8==0  && IMSTARVING!=time && character.food_status!=1){
+    if(time%8==7  && IMSTARVING!=time && character.food_status!=1){
         character.food_status--;
         IMSTARVING=time;
     }
     if(time%5==4 && IREALLYAMSTARVING!=time && character.food_status==1){
-        character.health--;
+        character.health-=character.difficulty;
         IREALLYAMSTARVING=time;
         showmsg("YOU'RE STARVING!!!",2);
     }
@@ -2024,8 +2508,7 @@ void BEGIN(int color,int difficulty,int floor,char name[]) {
     character.weapon[5]=0;
     character.spell[3]=0;
     strcpy(character.equipped_weapon,"Mace");
-    if(floor==1)
-        character.floor=1;
+    character.floor=1;
     play_game(rooms,character,board,visible,room_count,floor,name);
 }
 //int main() {
