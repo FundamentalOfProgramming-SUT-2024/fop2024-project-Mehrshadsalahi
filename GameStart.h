@@ -5,6 +5,8 @@
 #include <time.h>
 #include <string.h>
 
+#define MAP_WIDTH 71
+#define MAP_HEIGHT 36
 
 
 typedef struct {
@@ -148,20 +150,252 @@ void showmsg(char msg[], int color){ //green=3 //red=2 //normal=1
         attroff(COLOR_PAIR(color));
     attroff(A_BOLD);
 
-} 
-//OH LOOK IT'S PURE PAIN AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-int buildpath(int x1, int y1, int x2, int y2, char board[36][71]) {
+}
+
+
+int distance(int x1, int y1, int x2, int y2) {
+    int ans = (x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1);
+    return ans;
+}
+
+int closestroom(room rooms[], int room_count, int thisone, int notthis1, int notthis2) {
+    int current_min = 100000;
+    int ans = 20;
     
+    for (int i = 0; i < room_count; i++) {
+        if (i == thisone || i == notthis1 || i == notthis2) continue;
+        
+        int tempdis = distance(rooms[thisone].startx, rooms[thisone].starty, rooms[i].startx, rooms[i].starty);
+        
+        if (tempdis < current_min) {
+            current_min = tempdis;
+            ans = i;
+        }
+    }
+    
+    return ans;
+}
+
+void buildpath(char board[36][71], room room1, room room2) {
+    if (room2.startx > room1.startx && room2.starty > room1.starty) {
+        int valid=1;
+        point door1;
+        door1.x = room1.startx + room1.length;
+        door1.y = room1.starty + randit(2, room1.width-1);
+        
+        point door2;
+        door2.x = room2.startx + randit(2, room2.length-1);
+        door2.y = room2.starty;
+        if(door2.x > door1.x  && door2.y > door1.y){
+        for (int i = door1.x + 1; i <= door2.x; i++) {
+            if(board[door1.y][i] !=' ')
+                valid=0;
+        }
+        
+        for (int j = door1.y; j < door2.y; j++) {
+            if(board[j][door2.x] != ' ')
+                valid=0;
+        }
+        if(valid){
+        board[door1.y][door1.x] = '+';
+        board[door2.y][door2.x] = '+';
+        
+        for (int i = door1.x + 1; i <= door2.x; i++) {
+            board[door1.y][i] = '#';
+        }
+        
+        for (int j = door1.y; j < door2.y; j++) {
+            board[j][door2.x] = '#';
+        }
+        }
+        }
+        if(door2.x < room1.startx + room1.length && door2.x > room1.startx){
+            int val=1;
+            for(int j=door2.y-1;j>room1.starty+room1.width;j--)
+                if(board[j][door2.x]!=' ')
+                    val=0;
+            if(val){
+            int i=door2.y-1;
+            board[door2.y][door2.x] = '+';
+            while(board[i][door2.x]!='_'){
+                board[i][door2.x]='#';
+                i--;
+            }
+            board[i][door2.x]='+';
+            }
+        }
+        if(door1.y < room2.starty + room2.width && door1.y > room2.starty){
+            int val=1;
+            for(int j=door1.x+1;j<room2.startx;j++)
+                if(board[door1.y][j]!=' ')
+                    val=0;
+            if(val){
+            int i=door1.x+1;
+            board[door1.y][door1.x] = '+';
+            while(board[door1.y][i]!='|'){
+                board[door1.y][i]='#';
+                i++;
+            }
+            board[door1.y][i]='+';
+        }
+        }
+    }
+    if(room2.startx < room1.startx  &&  room2.starty > room1.starty){
+        int valid=1;
+        point door1;
+        door1.x = room1.startx;
+        door1.y = room1.starty + randit(2, room1.width-1);
+        
+        point door2;
+        door2.x = room2.startx + randit(2, room2.length-1);
+        door2.y = room2.starty;
+        if(door2.x < door1.x && door2.y > door1.y){
+            for(int i=door1.x-1;i>=door2.x;i--){
+                if(board[door1.y][i]!=' ')
+                    valid=0;
+            }
+            for(int i=door1.y;i<door2.y;i++){
+                if(board[i][door2.x]!=' ')
+                    valid=0;
+            }
+            if(valid){
+            board[door1.y][door1.x] = '+';
+            board[door2.y][door2.x] = '+';
+            for(int i=door1.x-1;i>=door2.x;i--)
+                board[door1.y][i]='#';
+            for(int i=door1.y;i<door2.y;i++)
+                board[i][door2.x]='#';        
+        }
+        }
+        if(door2.y < room1.starty + room1.width && door2.y > room1.starty){
+                int val=1;
+                if(board[door2.y][door2.x+1]=='_'  || board[door2.y][door2.x+1]=='|')
+                    val=0;
+                for(int i=door2.x+1;i<room1.startx;i++)
+                    if(board[door2.y][i]!=' ')
+                        val=0;
+                if(val){
+                for(int i=door2.x+1;i<room1.startx;i++)
+                    board[door2.y][i]='#';
+                board[door2.y][door2.x]='+';
+                board[door2.y][room1.startx]='+';
+        }
+        }
+        if(door1.x > room2.startx  && door1.x < room2.startx+room2.length){
+            int val=1;
+            if(board[door1.y+1][door1.x]=='|' || board[door1.y+1][door1.x]=='_')
+                val=0;
+            if(val){
+            int i=door1.y+1;
+            board[door1.y][door1.x]='+';
+            while(board[i][door1.x]!='_'){
+                board[i][door1.x]='#';
+                i++;
+            }
+            board[i][door1.x]='+';
+            }
+        }
+    }
+    if (room1.startx > room2.startx && room1.starty > room2.starty) {
+        int valid=1;
+        point door1,door2;
+        door1.x=room1.startx;
+        door1.y=room1.starty+randit(2,room1.width-1);
+        door2.x=room2.startx+randit(2,room2.length);
+        door2.y=room2.starty+room2.width;
+        if(door1.x > door2.x && door1.y > door2.y){
+            for(int i=door2.y+1;i<=door1.y;i++){
+                if(board[i][door2.x]!=' ')
+                    valid=0;
+            }
+            for(int i=door2.x;i<door1.x;i++){
+                if(board[door1.y][i])
+                    valid=0;
+            }
+            if(valid){
+            board[door1.y][door1.x]='+';
+            board[door2.y][door2.x]='+';
+            for(int i=door2.y+1;i<=door1.y;i++){
+                board[i][door2.x]='#';
+            }
+            for(int i=door2.x;i<door1.x;i++){
+                board[door1.y][i]='#';
+            }
+            }
+        }
+        if(door2.x < room1.startx + room1.length && door2.x > room1.startx){
+            int val=1;
+            for(int j=door2.y+1;j<room1.starty;j++)
+                if(board[j][door2.x]!=' ')
+                    val=0;
+            if(val){
+            int i=door2.y+1;
+            board[door2.y][door2.x] = '+';
+            while(board[i][door2.x]!='_'){
+                board[i][door2.x]='#';
+                i++;
+            }
+            board[i][door2.x]='+';
+        }
+        }
+        if(door1.y < room2.starty + room2.width && door1.y > room2.starty){
+            int val=1;
+            for(int j=door1.x-1;j>room2.startx+room2.length;j--)
+                if(board[door1.y][j]!=' ')
+                    val=0;
+            if(val){
+            int i=door1.x-1;
+            board[door1.y][door1.x] = '+';
+            while(board[door2.y][i]!='|'){
+                board[door1.y][i]='#';
+                i--;
+            }
+            board[door1.y][i]='+';
+            }
+        }
+    }
+    if(room1.starty==room2.starty  && room1.startx < room2.startx){
+        int valid=1;
+        point door1,door2;
+        door1.x=room1.startx+room1.length;
+        door1.y=room1.starty+2;
+        for(int i=door1.x+1;i<room2.startx;i++)
+            if(board[door1.y][i]!=' ')
+                valid=0;
+        if(valid){
+            board[door1.y][door1.x]='+';
+            for(int i=door1.x+1;i<room2.startx;i++)
+                board[door1.y][i]='#';
+            board[door1.y][room2.startx]='+';
+        }
+
+    }
 
 }
+
 void spawncorridors(int room_count, room rooms[], char board[36][71]) {
-
-
+    for (int i = 0; i < room_count; i++) {
+        int close = closestroom(rooms, room_count, i, i, i);
+        buildpath(board, rooms[i], rooms[close]);
+        buildpath(board, rooms[i], rooms[close]);
+        int block=close;
+        close = closestroom(rooms,room_count,i,block,i);
+        buildpath(board, rooms[i], rooms[close]);
+        buildpath(board, rooms[i], rooms[close]);
+        close = closestroom(rooms,room_count,i,block,close);
+        buildpath(board,rooms[i],rooms[close]);
+        buildpath(board,rooms[i],rooms[close]);
+        
+    }
 }
 
 
 
-//AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+
+
+
+
+
 
 
 
@@ -516,6 +750,25 @@ void showstats(player character){
 
 
 
+void treasure(room rooms[],char board[36][71],int room_count){
+    int E=randit(1,room_count-1);
+    for(int i=rooms[E].startx;i<=rooms[E].startx+rooms[E].length;i++)
+        for(int j=rooms[E].starty;j<=rooms[E].starty+rooms[E].width;j++){
+            if(board[j][i]=='.'){
+                if(randit(1,8)==1){
+                    board[j][i]='g';
+                }
+                if(randit(1,10)==1)
+                    board[j][i]='G';
+            }
+            if(board[j][i]=='O')
+                board[j][i]='g';
+        }
+    int randomx=randit(rooms[E].startx+2,rooms[E].startx+rooms[E].length-2);
+    int randomy=randit(rooms[E].starty+2,rooms[E].starty+rooms[E].width-2);
+    board[randomy][randomx]='$';
+}
+
 
 
 
@@ -568,7 +821,10 @@ void nextfloor(int room_count,int floor,room rooms[8],player character,char name
     lightuproom(rooms2[0],visible);
     spawncorridors(room_count,rooms2,board);
     generateweaponandspell(board,rooms2,room_count);
-    spawnstair(board,rooms2,room_count);
+    if(floor!=3)
+        spawnstair(board,rooms2,room_count);
+    if(floor==3)
+        treasure(rooms2,board,room_count);
     drawmap(board,visible);
     drawcharacter(board,character.color,character.point.x,character.point.y);
     refresh();
@@ -764,6 +1020,7 @@ void play_game(room rooms[8],player character,char board[36][71],int visible[36]
     int wasitastair=0;
     int ismaptrue=1;
     int wasitadoor=0;
+    int wasitacor=0;
     int IMSTARVING=0;
     int IREALLYAMSTARVING=0;
     while(true){
@@ -777,7 +1034,10 @@ void play_game(room rooms[8],player character,char board[36][71],int visible[36]
         if(order=='E' || order=='e' && character.food>0){
             character.food--;
             character.food_status++;
-            showmsg("You Ate some Food!",3);
+            character.health+=5;
+            if(character.health>100)
+                character.health=100;
+            showmsg("You Ate some Food And recovered some HP!",3);
         }
 
         if(order=='i' || order=='I'){
@@ -833,8 +1093,11 @@ void play_game(room rooms[8],player character,char board[36][71],int visible[36]
                     board[character.point.y][character.point.x]='+';
                 if(wasitastair)
                     board[character.point.y][character.point.x]='<';
+                 if(wasitacor)
+                    board[character.point.y][character.point.x]='#';
                  wasitadoor=0;
                  wasitastair=0;
+                 wasitacor=0;
                 character.point.y-=1;
                 character.point.x-=1;
                 clear();
@@ -856,8 +1119,11 @@ void play_game(room rooms[8],player character,char board[36][71],int visible[36]
                     board[character.point.y][character.point.x]='+';
                 if(wasitastair)
                     board[character.point.y][character.point.x]='<';
+                 if(wasitacor)
+                    board[character.point.y][character.point.x]='#';
                  wasitadoor=1;
                  wasitastair=0;
+                 wasitacor=0;
                 character.point.y-=1;
                 character.point.x-=1;
                 clear();
@@ -879,7 +1145,33 @@ void play_game(room rooms[8],player character,char board[36][71],int visible[36]
                     board[character.point.y][character.point.x]='+';
                 if(wasitastair)
                     board[character.point.y][character.point.x]='<';
+                 if(wasitacor)
+                    board[character.point.y][character.point.x]='#';
                 wasitastair=1;
+                character.point.y-=1;
+                character.point.x-=1;
+                clear();
+                if(ismaptrue)
+                    drawmap(board,visible);
+                else
+                    drawmapfalse(board);
+                refresh();
+                drawcharacter(board,character.color,character.point.x,character.point.y);
+                refresh();
+                refresh();
+
+            }
+            else if(board[character.point.y -1][character.point.x -1]=='#'){
+                didyoumove=1;
+                if(!wasitadoor)
+                    board[character.point.y][character.point.x]='.';
+                if(wasitadoor)
+                    board[character.point.y][character.point.x]='+';
+                if(wasitastair)
+                    board[character.point.y][character.point.x]='<';
+                 if(wasitacor)
+                    board[character.point.y][character.point.x]='#';
+                wasitacor=1;
                 character.point.y-=1;
                 character.point.x-=1;
                 clear();
@@ -903,6 +1195,8 @@ void play_game(room rooms[8],player character,char board[36][71],int visible[36]
                     board[character.point.y][character.point.x]='+';
                 if(wasitastair)
                     board[character.point.y][character.point.x]='<';
+                 if(wasitacor)
+                    board[character.point.y][character.point.x]='#';
                 wasitadoor=0;
                 wasitastair=0;
                 character.point.y-=1;
@@ -924,6 +1218,7 @@ void play_game(room rooms[8],player character,char board[36][71],int visible[36]
                     board[character.point.y][character.point.x]='+';
                  wasitadoor=1;
                  wasitastair=0;
+                 wasitacor=0;
                 character.point.y-=1;
                 clear();
                 if(ismaptrue)
@@ -943,7 +1238,31 @@ void play_game(room rooms[8],player character,char board[36][71],int visible[36]
                     board[character.point.y][character.point.x]='+';
                 if(wasitastair)
                     board[character.point.y][character.point.x]='<';
+                 if(wasitacor)
+                    board[character.point.y][character.point.x]='#';
                 wasitastair=1;
+                character.point.y-=1;
+                clear();
+                if(ismaptrue)
+                    drawmap(board,visible);
+                else
+                    drawmapfalse(board);
+                refresh();
+                drawcharacter(board,character.color,character.point.x,character.point.y);
+                refresh();
+                refresh();
+                }
+                else if(board[character.point.y-1][character.point.x]=='#'){
+                didyoumove=1;
+                if(!wasitadoor)
+                    board[character.point.y][character.point.x]='.';
+                if(wasitadoor)
+                    board[character.point.y][character.point.x]='+';
+                if(wasitastair)
+                    board[character.point.y][character.point.x]='<';
+                 if(wasitacor)
+                    board[character.point.y][character.point.x]='#';
+                wasitacor=1;
                 character.point.y-=1;
                 clear();
                 if(ismaptrue)
@@ -968,8 +1287,11 @@ void play_game(room rooms[8],player character,char board[36][71],int visible[36]
                     board[character.point.y][character.point.x]='+';
                 if(wasitastair)
                     board[character.point.y][character.point.x]='<';
+                 if(wasitacor)
+                    board[character.point.y][character.point.x]='#';
                  wasitadoor=0;
                  wasitastair=0;
+                 wasitacor=0;
                 character.point.y-=1;
                 character.point.x+=1;
                 clear();
@@ -990,8 +1312,11 @@ void play_game(room rooms[8],player character,char board[36][71],int visible[36]
                     board[character.point.y][character.point.x]='+';
                 if(wasitastair)
                     board[character.point.y][character.point.x]='<';
+                 if(wasitacor)
+                    board[character.point.y][character.point.x]='#';
                  wasitadoor=1;
                  wasitastair=0;
+                 wasitacor=0;
                 character.point.y-=1;
                 character.point.x+=1;
                 clear();
@@ -1025,6 +1350,27 @@ void play_game(room rooms[8],player character,char board[36][71],int visible[36]
                 refresh();
                 refresh();
             }
+            else if(board[character.point.y -1][character.point.x +1]=='#'){
+                didyoumove=1;
+               if(!wasitadoor)
+                    board[character.point.y][character.point.x]='.';
+                if(wasitadoor)
+                    board[character.point.y][character.point.x]='+';
+                if(wasitastair)
+                    board[character.point.y][character.point.x]='<';
+                wasitacor=1;
+                character.point.y-=1;
+                character.point.x+=1;
+                clear();
+                if(ismaptrue)
+                    drawmap(board,visible);
+                else
+                    drawmapfalse(board);
+                refresh();
+                drawcharacter(board,character.color,character.point.x,character.point.y);
+                refresh();
+                refresh();
+            }
         }
         if(order== '4'){
             if(board[character.point.y][character.point.x -1]=='.'){
@@ -1035,8 +1381,11 @@ void play_game(room rooms[8],player character,char board[36][71],int visible[36]
                     board[character.point.y][character.point.x]='+';
                 if(wasitastair)
                     board[character.point.y][character.point.x]='<';
+                 if(wasitacor)
+                    board[character.point.y][character.point.x]='#';
                  wasitadoor=0;
                  wasitastair=0;
+                 wasitacor=0;
                 character.point.x-=1;
                 clear();
                 if(ismaptrue)
@@ -1057,8 +1406,11 @@ void play_game(room rooms[8],player character,char board[36][71],int visible[36]
                     board[character.point.y][character.point.x]='+';
                 if(wasitastair)
                     board[character.point.y][character.point.x]='<';
+                 if(wasitacor)
+                    board[character.point.y][character.point.x]='#';
                  wasitadoor=1;
                  wasitastair=0;
+                 wasitacor=0;
                 character.point.x-=1;
                 clear();
                 if(ismaptrue)
@@ -1079,7 +1431,33 @@ void play_game(room rooms[8],player character,char board[36][71],int visible[36]
                     board[character.point.y][character.point.x]='+';
                 if(wasitastair)
                     board[character.point.y][character.point.x]='<';
+                 if(wasitacor)
+                    board[character.point.y][character.point.x]='#';
                 wasitastair=1;
+                character.point.x-=1;
+                clear();
+                if(ismaptrue)
+                    drawmap(board,visible);
+                else
+                    drawmapfalse(board);
+                refresh();
+                drawcharacter(board,character.color,character.point.x,character.point.y);
+                refresh();                if(wasitastair)
+                    board[character.point.y][character.point.x]='<';
+                refresh();
+
+            }
+            else if(board[character.point.y][character.point.x -1]=='#'){
+                didyoumove=1;
+                if(!wasitadoor)
+                    board[character.point.y][character.point.x]='.';
+                if(wasitadoor)
+                    board[character.point.y][character.point.x]='+';
+                if(wasitastair)
+                    board[character.point.y][character.point.x]='<';
+                 if(wasitacor)
+                    board[character.point.y][character.point.x]='#';
+                wasitacor=1;
                 character.point.x-=1;
                 clear();
                 if(ismaptrue)
@@ -1104,8 +1482,11 @@ void play_game(room rooms[8],player character,char board[36][71],int visible[36]
                     board[character.point.y][character.point.x]='+';
                 if(wasitastair)
                     board[character.point.y][character.point.x]='<';
+                 if(wasitacor)
+                    board[character.point.y][character.point.x]='#';
                  wasitadoor=0;
                  wasitastair=0;
+                 wasitacor=0;
                 character.point.x+=1;
                 clear();
                 if(ismaptrue)
@@ -1126,8 +1507,11 @@ void play_game(room rooms[8],player character,char board[36][71],int visible[36]
                     board[character.point.y][character.point.x]='+';
                 if(wasitastair)
                     board[character.point.y][character.point.x]='<';
+                 if(wasitacor)
+                    board[character.point.y][character.point.x]='#';
                  wasitadoor=1;
                  wasitastair=0;
+                 wasitacor=0;
                 character.point.x+=1;
                 clear();
                 if(ismaptrue)
@@ -1148,7 +1532,32 @@ void play_game(room rooms[8],player character,char board[36][71],int visible[36]
                     board[character.point.y][character.point.x]='+';
                 if(wasitastair)
                     board[character.point.y][character.point.x]='<';
+                 if(wasitacor)
+                    board[character.point.y][character.point.x]='#';
                 wasitastair=1;
+                character.point.x+=1;
+                clear();
+                if(ismaptrue)
+                    drawmap(board,visible);
+                else
+                    drawmapfalse(board);
+                refresh();
+                drawcharacter(board,character.color,character.point.x,character.point.y);
+                refresh();
+                refresh();
+
+            }
+        else if(board[character.point.y][character.point.x +1]=='#'){
+                didyoumove=1;
+                if(!wasitadoor)
+                    board[character.point.y][character.point.x]='.';
+                if(wasitadoor)
+                    board[character.point.y][character.point.x]='+';
+                if(wasitastair)
+                    board[character.point.y][character.point.x]='<';
+                 if(wasitacor)
+                    board[character.point.y][character.point.x]='#';
+                wasitacor=1;
                 character.point.x+=1;
                 clear();
                 if(ismaptrue)
@@ -1172,8 +1581,11 @@ void play_game(room rooms[8],player character,char board[36][71],int visible[36]
                     board[character.point.y][character.point.x]='+';
                 if(wasitastair)
                     board[character.point.y][character.point.x]='<';
+                 if(wasitacor)
+                    board[character.point.y][character.point.x]='#';
                  wasitadoor=0;
                  wasitastair=0;
+                 wasitacor=0;
                 character.point.y+=1;
                 character.point.x-=1;
                 clear();
@@ -1195,8 +1607,11 @@ void play_game(room rooms[8],player character,char board[36][71],int visible[36]
                     board[character.point.y][character.point.x]='+';
                 if(wasitastair)
                     board[character.point.y][character.point.x]='<';
+                 if(wasitacor)
+                    board[character.point.y][character.point.x]='#';
                  wasitadoor=1;
                  wasitastair=0;
+                 wasitacor=0;
                 character.point.y+=1;
                 character.point.x-=1;
                 clear();
@@ -1218,7 +1633,33 @@ void play_game(room rooms[8],player character,char board[36][71],int visible[36]
                     board[character.point.y][character.point.x]='+';
                 if(wasitastair)
                     board[character.point.y][character.point.x]='<';
+                 if(wasitacor)
+                    board[character.point.y][character.point.x]='#';
                 wasitastair=1;
+                character.point.y+=1;
+                character.point.x-=1;
+                clear();
+                if(ismaptrue)
+                    drawmap(board,visible);
+                else
+                    drawmapfalse(board);
+                refresh();
+                drawcharacter(board,character.color,character.point.x,character.point.y);
+                refresh();
+                refresh();
+
+            }
+            else if(board[character.point.y +1][character.point.x -1]=='#'){
+                didyoumove=1;
+                if(!wasitadoor)
+                    board[character.point.y][character.point.x]='.';
+                if(wasitadoor)
+                    board[character.point.y][character.point.x]='+';
+                if(wasitastair)
+                    board[character.point.y][character.point.x]='<';
+                 if(wasitacor)
+                    board[character.point.y][character.point.x]='#';
+                wasitacor=1;
                 character.point.y+=1;
                 character.point.x-=1;
                 clear();
@@ -1243,8 +1684,11 @@ void play_game(room rooms[8],player character,char board[36][71],int visible[36]
                     board[character.point.y][character.point.x]='+';
                 if(wasitastair)
                     board[character.point.y][character.point.x]='<';
+                 if(wasitacor)
+                    board[character.point.y][character.point.x]='#';
                  wasitadoor=0;
                  wasitastair=0;
+                 wasitacor=0;
                 character.point.y+=1;
                 clear();
                 if(ismaptrue)
@@ -1265,8 +1709,11 @@ void play_game(room rooms[8],player character,char board[36][71],int visible[36]
                     board[character.point.y][character.point.x]='+';
                 if(wasitastair)
                     board[character.point.y][character.point.x]='<';
+                 if(wasitacor)
+                    board[character.point.y][character.point.x]='#';
                  wasitadoor=1;
                  wasitastair=0;
+                 wasitacor=0;
                 character.point.y+=1;
                 clear();
                 if(ismaptrue)
@@ -1287,7 +1734,32 @@ void play_game(room rooms[8],player character,char board[36][71],int visible[36]
                     board[character.point.y][character.point.x]='+';
                 if(wasitastair)
                     board[character.point.y][character.point.x]='<';
+                 if(wasitacor)
+                    board[character.point.y][character.point.x]='#';
                 wasitastair=1;
+                character.point.y+=1;
+                clear();
+                if(ismaptrue)
+                    drawmap(board,visible);
+                else
+                    drawmapfalse(board);
+                refresh();
+                drawcharacter(board,character.color,character.point.x,character.point.y);
+                refresh();
+                refresh();
+
+            }
+            else if(board[character.point.y +1][character.point.x]=='#'){
+                didyoumove=1;
+                if(!wasitadoor)
+                    board[character.point.y][character.point.x]='.';
+                if(wasitadoor)
+                    board[character.point.y][character.point.x]='+';
+                if(wasitastair)
+                    board[character.point.y][character.point.x]='<';
+                 if(wasitacor)
+                    board[character.point.y][character.point.x]='#';
+                wasitacor=1;
                 character.point.y+=1;
                 clear();
                 if(ismaptrue)
@@ -1312,8 +1784,11 @@ void play_game(room rooms[8],player character,char board[36][71],int visible[36]
                     board[character.point.y][character.point.x]='+';
                 if(wasitastair)
                     board[character.point.y][character.point.x]='<';
+                 if(wasitacor)
+                    board[character.point.y][character.point.x]='#';
                  wasitadoor=0;
                  wasitastair=0;
+                 wasitacor=0;
                 character.point.y+=1;
                 character.point.x+=1;
                 clear();
@@ -1335,8 +1810,11 @@ void play_game(room rooms[8],player character,char board[36][71],int visible[36]
                     board[character.point.y][character.point.x]='+';
                 if(wasitastair)
                     board[character.point.y][character.point.x]='<';
+                 if(wasitacor)
+                    board[character.point.y][character.point.x]='#';
                  wasitadoor=1;
                  wasitastair=0;
+                 wasitacor=0;
                 character.point.y+=1;
                 character.point.x+=1;
                 clear();
@@ -1358,7 +1836,33 @@ void play_game(room rooms[8],player character,char board[36][71],int visible[36]
                     board[character.point.y][character.point.x]='+';
                 if(wasitastair)
                     board[character.point.y][character.point.x]='<';
+                 if(wasitacor)
+                    board[character.point.y][character.point.x]='#';
                 wasitastair=1;
+                character.point.y+=1;
+                character.point.x+=1;
+                clear();
+                if(ismaptrue)
+                    drawmap(board,visible);
+                else
+                    drawmapfalse(board);
+                refresh();
+                drawcharacter(board,character.color,character.point.x,character.point.y);
+                refresh();
+                refresh();
+
+            }
+            else if(board[character.point.y +1][character.point.x +1]=='#'){
+                didyoumove=1;
+                if(!wasitadoor)
+                    board[character.point.y][character.point.x]='.';
+                if(wasitadoor)
+                    board[character.point.y][character.point.x]='+';
+                if(wasitastair)
+                    board[character.point.y][character.point.x]='<';
+                 if(wasitacor)
+                    board[character.point.y][character.point.x]='#';
+                wasitacor=1;
                 character.point.y+=1;
                 character.point.x+=1;
                 clear();
@@ -1385,8 +1889,11 @@ void play_game(room rooms[8],player character,char board[36][71],int visible[36]
                     board[character.point.y][character.point.x]='+';
                 if(wasitastair)
                     board[character.point.y][character.point.x]='<';
+                 if(wasitacor)
+                    board[character.point.y][character.point.x]='#';
                  wasitadoor=0;
                  wasitastair=0;
+                 wasitacor=0;
                 character.point.y-=1;
                 character.point.x-=1;
                 character.food++;
@@ -1410,8 +1917,11 @@ void play_game(room rooms[8],player character,char board[36][71],int visible[36]
                     board[character.point.y][character.point.x]='+';
                 if(wasitastair)
                     board[character.point.y][character.point.x]='<';
+                 if(wasitacor)
+                    board[character.point.y][character.point.x]='#';
                  wasitadoor=0;
                  wasitastair=0;
+                 wasitacor=0;
                 character.point.y-=1;
                 character.point.x-=1;
                 character.gold+=randit(1,10);
@@ -1435,6 +1945,8 @@ void play_game(room rooms[8],player character,char board[36][71],int visible[36]
                     board[character.point.y][character.point.x]='+';
                 if(wasitastair)
                     board[character.point.y][character.point.x]='<';
+                 if(wasitacor)
+                    board[character.point.y][character.point.x]='#';
                 wasitadoor=0;
                 wasitastair=0;
                 character.point.y-=1;
@@ -1462,6 +1974,8 @@ void play_game(room rooms[8],player character,char board[36][71],int visible[36]
                     board[character.point.y][character.point.x]='+';
                 if(wasitastair)
                     board[character.point.y][character.point.x]='<';
+                 if(wasitacor)
+                    board[character.point.y][character.point.x]='#';
                 wasitadoor=0;
                 wasitastair=0;
                 character.point.y-=1;
@@ -1486,6 +2000,7 @@ void play_game(room rooms[8],player character,char board[36][71],int visible[36]
                     board[character.point.y][character.point.x]='+';
                  wasitadoor=0;
                  wasitastair=0;
+                 wasitacor=0;
                 character.gold+=randit(1,10);
                 character.point.y-=1;
                 clear();
@@ -1507,6 +2022,8 @@ void play_game(room rooms[8],player character,char board[36][71],int visible[36]
                     board[character.point.y][character.point.x]='+';
                 if(wasitastair)
                     board[character.point.y][character.point.x]='<';
+                 if(wasitacor)
+                    board[character.point.y][character.point.x]='#';
                 wasitastair=0;
                 character.gold+=randit(15,25);
                 character.point.y-=1;
@@ -1533,8 +2050,11 @@ void play_game(room rooms[8],player character,char board[36][71],int visible[36]
                     board[character.point.y][character.point.x]='+';
                 if(wasitastair)
                     board[character.point.y][character.point.x]='<';
+                 if(wasitacor)
+                    board[character.point.y][character.point.x]='#';
                  wasitadoor=0;
                  wasitastair=0;
+                 wasitacor=0;
                 character.food+=1;
                 character.point.y-=1;
                 character.point.x+=1;
@@ -1557,8 +2077,11 @@ void play_game(room rooms[8],player character,char board[36][71],int visible[36]
                     board[character.point.y][character.point.x]='+';
                 if(wasitastair)
                     board[character.point.y][character.point.x]='<';
+                 if(wasitacor)
+                    board[character.point.y][character.point.x]='#';
                  wasitadoor=0;
                  wasitastair=0;
+                 wasitacor=0;
                 character.gold+=randit(1,10);
                 character.point.y-=1;
                 character.point.x+=1;
@@ -1605,8 +2128,11 @@ void play_game(room rooms[8],player character,char board[36][71],int visible[36]
                     board[character.point.y][character.point.x]='+';
                 if(wasitastair)
                     board[character.point.y][character.point.x]='<';
+                 if(wasitacor)
+                    board[character.point.y][character.point.x]='#';
                  wasitadoor=0;
                  wasitastair=0;
+                 wasitacor=0;
                 character.food+=1;
                 character.point.x-=1;
                 clear();
@@ -1629,8 +2155,11 @@ void play_game(room rooms[8],player character,char board[36][71],int visible[36]
                     board[character.point.y][character.point.x]='+';
                 if(wasitastair)
                     board[character.point.y][character.point.x]='<';
+                 if(wasitacor)
+                    board[character.point.y][character.point.x]='#';
                  wasitadoor=0;
                  wasitastair=0;
+                 wasitacor=0;
                 character.gold+=randit(1,10);
                 character.point.x-=1;
                 clear();
@@ -1653,6 +2182,8 @@ void play_game(room rooms[8],player character,char board[36][71],int visible[36]
                     board[character.point.y][character.point.x]='+';
                 if(wasitastair)
                     board[character.point.y][character.point.x]='<';
+                 if(wasitacor)
+                    board[character.point.y][character.point.x]='#';
                 wasitastair=0;
                 character.gold+=randit(1,25);
                 character.point.x-=1;
@@ -1679,8 +2210,11 @@ void play_game(room rooms[8],player character,char board[36][71],int visible[36]
                     board[character.point.y][character.point.x]='+';
                 if(wasitastair)
                     board[character.point.y][character.point.x]='<';
+                 if(wasitacor)
+                    board[character.point.y][character.point.x]='#';
                  wasitadoor=0;
                  wasitastair=0;
+                 wasitacor=0;
                 character.food+=1;
                 character.point.x+=1;
                 clear();
@@ -1703,8 +2237,11 @@ void play_game(room rooms[8],player character,char board[36][71],int visible[36]
                     board[character.point.y][character.point.x]='+';
                 if(wasitastair)
                     board[character.point.y][character.point.x]='<';
+                 if(wasitacor)
+                    board[character.point.y][character.point.x]='#';
                  wasitadoor=0;
                  wasitastair=0;
+                 wasitacor=0;
                 character.gold+=randit(1,10);
                 character.point.x+=1;
                 clear();
@@ -1727,6 +2264,8 @@ void play_game(room rooms[8],player character,char board[36][71],int visible[36]
                     board[character.point.y][character.point.x]='+';
                 if(wasitastair)
                     board[character.point.y][character.point.x]='<';
+                 if(wasitacor)
+                    board[character.point.y][character.point.x]='#';
                 wasitastair=0;
                 character.gold+=randit(15,25);
                 character.point.x+=1;
@@ -1753,8 +2292,11 @@ void play_game(room rooms[8],player character,char board[36][71],int visible[36]
                     board[character.point.y][character.point.x]='+';
                 if(wasitastair)
                     board[character.point.y][character.point.x]='<';
+                 if(wasitacor)
+                    board[character.point.y][character.point.x]='#';
                  wasitadoor=0;
                  wasitastair=0;
+                 wasitacor=0;
                 character.food+=1;
                 character.point.y+=1;
                 character.point.x-=1;
@@ -1778,8 +2320,11 @@ void play_game(room rooms[8],player character,char board[36][71],int visible[36]
                     board[character.point.y][character.point.x]='+';
                 if(wasitastair)
                     board[character.point.y][character.point.x]='<';
+                 if(wasitacor)
+                    board[character.point.y][character.point.x]='#';
                  wasitadoor=0;
                  wasitastair=0;
+                 wasitacor=0;
                 character.gold+=randit(1,10);
                 character.point.y+=1;
                 character.point.x-=1;
@@ -1803,6 +2348,8 @@ void play_game(room rooms[8],player character,char board[36][71],int visible[36]
                     board[character.point.y][character.point.x]='+';
                 if(wasitastair)
                     board[character.point.y][character.point.x]='<';
+                 if(wasitacor)
+                    board[character.point.y][character.point.x]='#';
                 wasitastair=0;
                 character.gold+=randit(15,25);
                 character.point.y+=1;
@@ -1830,9 +2377,12 @@ void play_game(room rooms[8],player character,char board[36][71],int visible[36]
                     board[character.point.y][character.point.x]='+';
                 if(wasitastair)
                     board[character.point.y][character.point.x]='<';
+                 if(wasitacor)
+                    board[character.point.y][character.point.x]='#';
                 character.food+=1;
                  wasitadoor=0;
                  wasitastair=0;
+                 wasitacor=0;
                 character.point.y+=1;
                 clear();
                 if(ismaptrue)
@@ -1854,8 +2404,11 @@ void play_game(room rooms[8],player character,char board[36][71],int visible[36]
                     board[character.point.y][character.point.x]='+';
                 if(wasitastair)
                     board[character.point.y][character.point.x]='<';
+                 if(wasitacor)
+                    board[character.point.y][character.point.x]='#';
                  wasitadoor=0;
                  wasitastair=0;
+                 wasitacor=0;
                 character.gold+=randit(1,10);
                 character.point.y+=1;
                 clear();
@@ -1878,6 +2431,8 @@ void play_game(room rooms[8],player character,char board[36][71],int visible[36]
                     board[character.point.y][character.point.x]='+';
                 if(wasitastair)
                     board[character.point.y][character.point.x]='<';
+                 if(wasitacor)
+                    board[character.point.y][character.point.x]='#';
                 wasitastair=0;
                 character.gold+=randit(15,25);
                 character.point.y+=1;
@@ -1903,8 +2458,11 @@ void play_game(room rooms[8],player character,char board[36][71],int visible[36]
                     board[character.point.y][character.point.x]='+';
                 if(wasitastair)
                     board[character.point.y][character.point.x]='<';
+                 if(wasitacor)
+                    board[character.point.y][character.point.x]='#';
                  wasitadoor=0;
                  wasitastair=0;
+                 wasitacor=0;
                 character.food+=1;
                 character.point.y+=1;
                 character.point.x+=1;
@@ -1928,8 +2486,11 @@ void play_game(room rooms[8],player character,char board[36][71],int visible[36]
                     board[character.point.y][character.point.x]='+';
                 if(wasitastair)
                     board[character.point.y][character.point.x]='<';
+                 if(wasitacor)
+                    board[character.point.y][character.point.x]='#';
                  wasitadoor=0;
                  wasitastair=0;
+                 wasitacor=0;
                 character.gold+=randit(1,10);
                 character.point.y+=1;
                 character.point.x+=1;
@@ -1952,6 +2513,8 @@ void play_game(room rooms[8],player character,char board[36][71],int visible[36]
                     board[character.point.y][character.point.x]='+';
                 if(wasitastair)
                     board[character.point.y][character.point.x]='<';
+                 if(wasitacor)
+                    board[character.point.y][character.point.x]='#';
                 wasitastair=0;
                 character.gold+=randit(15,25);
                 character.point.y+=1;
@@ -1982,9 +2545,17 @@ void play_game(room rooms[8],player character,char board[36][71],int visible[36]
                     board[character.point.y][character.point.x]='+';
                 if(wasitastair)
                     board[character.point.y][character.point.x]='<';
+                 if(wasitacor)
+                    board[character.point.y][character.point.x]='#';
                  wasitadoor=0;
                  wasitastair=0;
+                 wasitacor=0;
                 clear();
+                if(ismaptrue)
+                    drawmap(board,visible);
+                else
+                    drawmapfalse(board);
+                refresh();
                 if(board[character.point.y -1][character.point.x -1]=='A' ){
                     showmsg("You Picked up 10 Daggers!",2);
                     character.weapon[1]+=10;
@@ -2016,11 +2587,6 @@ void play_game(room rooms[8],player character,char board[36][71],int visible[36]
                 refresh();
                 character.point.y-=1;
                 character.point.x-=1;
-                if(ismaptrue)
-                    drawmap(board,visible);
-                else
-                    drawmapfalse(board);
-                refresh();
                 drawcharacter(board,character.color,character.point.x,character.point.y);
                 refresh();
             }
@@ -2036,9 +2602,17 @@ void play_game(room rooms[8],player character,char board[36][71],int visible[36]
                     board[character.point.y][character.point.x]='+';
                 if(wasitastair)
                     board[character.point.y][character.point.x]='<';
+                 if(wasitacor)
+                    board[character.point.y][character.point.x]='#';
                  wasitadoor=0;
                  wasitastair=0;
+                 wasitacor=0;
                 clear();
+                if(ismaptrue)
+                    drawmap(board,visible);
+                else
+                    drawmapfalse(board);
+                refresh();
                 if(board[character.point.y -1][character.point.x]=='A' ){
                     showmsg("You Picked up 10 Daggers!",2);
                     character.weapon[1]+=10;
@@ -2069,11 +2643,6 @@ void play_game(room rooms[8],player character,char board[36][71],int visible[36]
                 }
                 refresh();
                 character.point.y-=1;
-                if(ismaptrue)
-                    drawmap(board,visible);
-                else
-                    drawmapfalse(board);
-                refresh();
                 drawcharacter(board,character.color,character.point.x,character.point.y);
                 refresh();
             }
@@ -2089,9 +2658,17 @@ void play_game(room rooms[8],player character,char board[36][71],int visible[36]
                     board[character.point.y][character.point.x]='+';
                 if(wasitastair)
                     board[character.point.y][character.point.x]='<';
+                 if(wasitacor)
+                    board[character.point.y][character.point.x]='#';
                  wasitadoor=0;
                  wasitastair=0;
+                 wasitacor=0;
                 clear();
+                if(ismaptrue)
+                    drawmap(board,visible);
+                else
+                    drawmapfalse(board);
+                refresh();
                 if(board[character.point.y -1][character.point.x+1]=='A' ){
                     showmsg("You Picked up 10 Daggers!",2);
                     character.weapon[1]+=10;
@@ -2123,11 +2700,6 @@ void play_game(room rooms[8],player character,char board[36][71],int visible[36]
                 refresh();
                 character.point.y-=1;
                 character.point.x+=1;
-                if(ismaptrue)
-                    drawmap(board,visible);
-                else
-                    drawmapfalse(board);
-                refresh();
                 drawcharacter(board,character.color,character.point.x,character.point.y);
                 refresh();
             }
@@ -2143,9 +2715,17 @@ void play_game(room rooms[8],player character,char board[36][71],int visible[36]
                     board[character.point.y][character.point.x]='+';
                 if(wasitastair)
                     board[character.point.y][character.point.x]='<';
+                 if(wasitacor)
+                    board[character.point.y][character.point.x]='#';
                  wasitadoor=0;
                  wasitastair=0;
+                 wasitacor=0;
                 clear();
+                if(ismaptrue)
+                    drawmap(board,visible);
+                else
+                    drawmapfalse(board);
+                refresh();
                 if(board[character.point.y][character.point.x-1]=='A' ){
                     showmsg("You Picked up 10 Daggers!",2);
                     character.weapon[1]+=10;
@@ -2176,11 +2756,6 @@ void play_game(room rooms[8],player character,char board[36][71],int visible[36]
                 }
                 refresh();
                 character.point.x-=1;
-                if(ismaptrue)
-                    drawmap(board,visible);
-                else
-                    drawmapfalse(board);
-                refresh();
                 drawcharacter(board,character.color,character.point.x,character.point.y);
                 refresh();
             }
@@ -2196,9 +2771,17 @@ void play_game(room rooms[8],player character,char board[36][71],int visible[36]
                     board[character.point.y][character.point.x]='+';
                 if(wasitastair)
                     board[character.point.y][character.point.x]='<';
+                 if(wasitacor)
+                    board[character.point.y][character.point.x]='#';
                  wasitadoor=0;
                  wasitastair=0;
+                 wasitacor=0;
                 clear();
+                if(ismaptrue)
+                    drawmap(board,visible);
+                else
+                    drawmapfalse(board);
+                refresh();
                 if(board[character.point.y][character.point.x+1]=='A' ){
                     showmsg("You Picked up 10 Daggers!",2);
                     character.weapon[1]+=10;
@@ -2229,11 +2812,6 @@ void play_game(room rooms[8],player character,char board[36][71],int visible[36]
                 }
                 refresh();
                 character.point.x+=1;
-                if(ismaptrue)
-                    drawmap(board,visible);
-                else
-                    drawmapfalse(board);
-                refresh();
                 drawcharacter(board,character.color,character.point.x,character.point.y);
                 refresh();
             }
@@ -2249,9 +2827,17 @@ void play_game(room rooms[8],player character,char board[36][71],int visible[36]
                     board[character.point.y][character.point.x]='+';
                 if(wasitastair)
                     board[character.point.y][character.point.x]='<';
+                 if(wasitacor)
+                    board[character.point.y][character.point.x]='#';
                  wasitadoor=0;
                  wasitastair=0;
+                 wasitacor=0;
                 clear();
+                if(ismaptrue)
+                    drawmap(board,visible);
+                else
+                    drawmapfalse(board);
+                refresh();
                 if(board[character.point.y+1][character.point.x-1]=='A' ){
                     showmsg("You Picked up 10 Daggers!",2);
                     character.weapon[1]+=10;
@@ -2283,10 +2869,6 @@ void play_game(room rooms[8],player character,char board[36][71],int visible[36]
                 refresh();
                 character.point.x-=1;
                 character.point.y+=1;
-                if(ismaptrue)
-                    drawmap(board,visible);
-                else
-                    drawmapfalse(board);
                 refresh();
                 drawcharacter(board,character.color,character.point.x,character.point.y);
                 refresh();
@@ -2303,9 +2885,17 @@ void play_game(room rooms[8],player character,char board[36][71],int visible[36]
                     board[character.point.y][character.point.x]='+';
                 if(wasitastair)
                     board[character.point.y][character.point.x]='<';
+                 if(wasitacor)
+                    board[character.point.y][character.point.x]='#';
                  wasitadoor=0;
                  wasitastair=0;
+                 wasitacor=0;
                 clear();
+                if(ismaptrue)
+                    drawmap(board,visible);
+                else
+                    drawmapfalse(board);
+                refresh();
                 if(board[character.point.y+1][character.point.x]=='A' ){
                     showmsg("You Picked up 10 Daggers!",2);
                     character.weapon[1]+=10;
@@ -2336,11 +2926,6 @@ void play_game(room rooms[8],player character,char board[36][71],int visible[36]
                 }
                 refresh();
                 character.point.y+=1;
-                if(ismaptrue)
-                    drawmap(board,visible);
-                else
-                    drawmapfalse(board);
-                refresh();
                 drawcharacter(board,character.color,character.point.x,character.point.y);
                 refresh();
             }
@@ -2356,9 +2941,17 @@ void play_game(room rooms[8],player character,char board[36][71],int visible[36]
                     board[character.point.y][character.point.x]='+';
                 if(wasitastair)
                     board[character.point.y][character.point.x]='<';
+                 if(wasitacor)
+                    board[character.point.y][character.point.x]='#';
                  wasitadoor=0;
                  wasitastair=0;
+                 wasitacor=0;
                 clear();
+                if(ismaptrue)
+                    drawmap(board,visible);
+                else
+                    drawmapfalse(board);
+                refresh();
                 if(board[character.point.y+1][character.point.x+1]=='A' ){
                     showmsg("You Picked up 10 Daggers!",2);
                     character.weapon[1]+=10;
@@ -2390,34 +2983,33 @@ void play_game(room rooms[8],player character,char board[36][71],int visible[36]
                 refresh();
                 character.point.y+=1;
                 character.point.x+=1;
-                if(ismaptrue)
-                    drawmap(board,visible);
-                else
-                    drawmapfalse(board);
-                refresh();
                 drawcharacter(board,character.color,character.point.x,character.point.y);
                 refresh();
             }
         }
 
 
-    if(didyoumove)
+    if(didyoumove){
         time++;
+    }
     if(time%4==2 && character.food_status==4 && character.health!=20  && WHENEATFOOD!=time){
-        character.health++;
+        character.health+=4;
+        if(character.health!=104)
+            showmsg("You recovered some Health!",3);
+        if(character.health>100)
+            character.health=100;
         WHENEATFOOD=time;
-        showmsg("You recovered some Health!",3);
     }
     if(time%8==7  && IMSTARVING!=time && character.food_status!=1){
         character.food_status--;
         IMSTARVING=time;
     }
     if(time%5==4 && IREALLYAMSTARVING!=time && character.food_status==1){
-        character.health-=character.difficulty;
+        character.health-=character.difficulty*2;
         IREALLYAMSTARVING=time;
         showmsg("YOU'RE STARVING!!!",2);
     }
-    if(!character.health)
+    if(character.health<=0)
         gameoverscreen(character,name);
     showstats(character);
     lightupplayer(visible,character.point.x,character.point.y);
@@ -2495,7 +3087,7 @@ void BEGIN(int color,int difficulty,int floor,char name[]) {
     character.gold=0;
     character.food=2;
     character.key=0;
-    character.health=20;
+    character.health=100;
     character.broken_key=0;
     character.spell[0]=0;
     character.spell[1]=0;
