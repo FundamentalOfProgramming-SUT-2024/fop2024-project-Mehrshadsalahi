@@ -117,54 +117,60 @@ void LoadGameMenu(char name[]){
     //     }
     // }
 }
+int compareScores(const void *a, const void *b) {
+    return ((winner *)b)->score - ((winner *)a)->score;
+}
 
-// void ScoreBoard(char name[50]){
-//     clear();
-//     char name1[100];
-//     char leaderboards[5][110];
-//     int scores[5];
-//     player character;
-//     for(int i=0;i<5;i++){
-//     FILE charfile = fopen("character.txt", "r");
-//     FILEnamefile = fopen("name.txt", "r");
-//     fscanf(namefile, "%s", name1);
-//     fscanf(charfile, "%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,",
-//         &character.point.x, &character.point.y,
-//         &character.health, &character.color,
-//         &character.key, &character.broken_key,
-//         &character.food, &character.gold,
-//         &character.difficulty,
-//         &character.weapon[3], &character.weapon[4],
-//         &character.spell[0], &character.spell[1], &character.spell[2],
-//         &character.weapon[0], &character.weapon[1], &character.weapon[2],
-//         &character.floor);
-//     scores[i]=character.gold * 10;
-//     strcpy(leaderboards[i],name1);
-//   for (int i=0; i<4; i++) {
-//         for (int j = i + 1; j < 5; j++) {
-//     }
-//             if (scores[i] < scores[j]) { 
-//                 int temp_score = scores[i];
-//                 scores[i] = scores[j];
-//                 scores[j] = temp_score;
-//                 char temp_name[110];
-//                 strcpy(temp_name, leaderboards[i]);
-//                 strcpy(leaderboards[i], leaderboards[j]);
-//                 strcpy(leaderboards[j], temp_name);
-//             }
-//         }
-//     }
-//     for(int i=0;i<5;i++){
-//         mvprintw(i,0,"%s",leaderboards[i]);
-//         mvprintw(i,20,"%d",scores[i]);
-//     }
-//     refresh();
-//     sleep(10);
+ void ScoreBoard(char nameRN[50]){
+    FILE *scoreboard = fopen("scoreboard.txt", "r");
+    winner winners[10];
+    int count=0;
+    while (count < 10 && fscanf(scoreboard, "%s %d", winners[count].name, &winners[count].score) == 2) {
+        count++;
+    }
+    fclose(scoreboard);
+    qsort(winners, count, sizeof(winner), compareScores);
+    clear();
+    printf("Sorted Players by Score:\n");
+    char title[20];
+    for (int i=0; i<count; i++) {
+        if(i==0){
+            attron(COLOR_PAIR(5));
+            strcpy(title,"THE GOAT!");
+        }
+        if(i==1){
+            attron(COLOR_PAIR(3));
+            strcpy(title,"THE KING!");
+        }
+        if(i==2){
+            attron(COLOR_PAIR(10));
+            strcpy(title,"THE LORD!");
+        }
+        if(i>2)
+            strcpy(title, " ");
+        if(strcmp(winners[i].name,nameRN)==0){
+            attron(A_BOLD);
+            strcat(title,"(You!)");
+        }
+        mvprintw(i,20,"%s %s  : %d\n", winners[i].name,title,winners[i].score);
+        if(strcmp(winners[i].name,nameRN)==0)
+            attroff(A_BOLD);
+        if(i==0){
+            attroff(COLOR_PAIR(5));
+        }
+        if(i==1){
+            attroff(COLOR_PAIR(3));
+        }
+        if(i==2){
+            attroff(COLOR_PAIR(10));
+        }
+
+    }
+    refresh();
+    getch();
+ }
 
 
-// }
-
-//
 
 void PreGameMenu(char name[],char password[]){
     clear();
@@ -230,7 +236,7 @@ void PreGameMenu(char name[],char password[]){
             if(choice==3)
                 settings(&colour ,&diff);
             if(choice==4){
-  //              ScoreBoard(name);
+                ScoreBoard(name);
             }
         }
             

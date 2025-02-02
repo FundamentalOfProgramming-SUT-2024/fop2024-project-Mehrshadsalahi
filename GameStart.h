@@ -10,6 +10,12 @@
 
 
 typedef struct {
+    char name[100];
+    int score;
+}winner;
+
+
+typedef struct {
     int x;
     int y;
 } point;
@@ -541,7 +547,7 @@ void savegame(room rooms[],player character,char board[36][71],int visible[36][7
 
     enemyfile=fopen("enemy.txt","w");
     for(int i=0;i<10;i++){
-        fprintf(enemyfile,"%d,%d,%d,%d,%d,%d,%d ||",enemy[i].point.x,enemy[i].point.y,enemy[i].health,enemy[i].attack,enemy[i].exist,enemy[i].doifollow,enemy[i].type);
+        fprintf(enemyfile,"%d %d %d %d %d %d %c ",enemy[i].point.x,enemy[i].point.y,enemy[i].health,enemy[i].attack,enemy[i].exist,enemy[i].doifollow,enemy[i].type);
     }
     fclose(enemyfile);
 
@@ -870,8 +876,8 @@ void treasure(room rooms[],char board[36][71],int room_count){
                 if(randit(1,15)==1){
                     board[j][i]='g';
                 }
-                if(randit(1,40)==1)
-                    board[j][i]='G';
+                if(randit(1,20)==1)
+                    board[j][i]='*';
             }
             if(board[j][i]=='O')
                 board[j][i]='g';
@@ -1003,12 +1009,14 @@ void loadgame(int savenum){
     int room_count;
     char board[36][71];
     int visible[36][71];
+    enemy enemy[10];
     char name[100];
     FILE *roomfile = fopen("rooms.txt", "r");
     FILE *charfile = fopen("character.txt", "r");
     FILE *boardfile = fopen("board.txt", "r");
     FILE *visiblefile = fopen("visible.txt", "r");
     FILE *namefile = fopen("name.txt", "r");
+    FILE *enemyfile = fopen("enemy.txt","r");
     if(savenum==1){
     fscanf(roomfile, "%d//", &room_count);
     for (int i = 0; i < room_count; i++) {
@@ -1018,6 +1026,13 @@ void loadgame(int savenum){
             &rooms[i].type1);
     }
     fclose(roomfile);
+
+    for(int i=0;i<10;i++){
+        fscanf(enemyfile,"%d %d %d %d %d %d %c",&enemy[i].point.x,&enemy[i].point.y,&enemy[i].health,&enemy[i].attack,&enemy[i].exist,&enemy[i].doifollow,&enemy[i].type);
+    }
+    fclose(enemyfile);
+
+
     fscanf(charfile, "%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,",
         &character.point.x, &character.point.y,
         &character.health, &character.color,
@@ -1050,7 +1065,7 @@ void loadgame(int savenum){
 //    lightuproom(rooms[0],visible);
     drawmap(board,visible);
     drawcharacter(board,character.color,character.point.x,character.point.y);
-    //play_game(rooms,character,board,visible,room_count,character.floor,name);
+    play_game(rooms,character,board,visible,room_count,character.floor,name,enemy);
     }
 }
 
@@ -1091,6 +1106,7 @@ int spellmenu(player *character){
     if(order=='q' || order=='Q')
         break;
     }
+    nodelay(stdscr,TRUE);
     return result;
 }
 
@@ -1118,27 +1134,27 @@ void weaponsmenu(player *character){
     attroff(COLOR_PAIR(5));
     if( (order=='M' || order=='m') && character->weapon[0]!=0)
         attron(COLOR_PAIR(1));
-    mvprintw(3,0,"Mace %d",character->weapon[0]);
+    mvprintw(3,0," ⚒️ Mace|| Amount: %d || Melee || 5 DMG",character->weapon[0]);
     if( (order=='M' || order=='m') && character->weapon[0]!=0)
         attroff(COLOR_PAIR(1));
     if( (order=='D' || order=='d') && character->weapon[1]!=0)
         attron(COLOR_PAIR(1));
-    mvprintw(4,0,"Dagger %d",character->weapon[1]);
+    mvprintw(4,0," † Dagger || Amount: %d || Ranged with the Range of 5 || 12 DMG",character->weapon[1]);
     if( (order=='D' || order=='d') && character->weapon[1]!=0)
         attroff(COLOR_PAIR(1));
     if( (order=='w' || order=='W') && character->weapon[2]!=0)
         attron(COLOR_PAIR(1));
-    mvprintw(5,0,"Magic Wand %d",character->weapon[2]);
+    mvprintw(5,0," ✪ Magic Wand || Amount:%d || Ranged with the range of 10 || 15 DMG ",character->weapon[2]);
     if( (order=='w' || order=='W') && character->weapon[2]!=0)
         attroff(COLOR_PAIR(1));
     if( (order=='n' || order=='N') && character->weapon[3]!=0)
         attron(COLOR_PAIR(1));
-    mvprintw(6,0,"Normal Arrow %d",character->weapon[3]);
+    mvprintw(6,0," ➻ Normal Arrow || Amount: %d || Ranged with the range of 5 || 5 DMG",character->weapon[3]);
     if( (order=='n' || order=='N') && character->weapon[3]!=0)
         attroff(COLOR_PAIR(1));
     if( (order=='S' || order=='s') && character->weapon[4]!=0)
         attron(COLOR_PAIR(1));
-    mvprintw(7,0,"Sword %d",character->weapon[4]);
+    mvprintw(7,0," ‡ Sword || Amount: %d || Melee || 10 DMG",character->weapon[4]);
     if( (order=='S' || order=='s') && character->weapon[4]!=0)
         attroff(COLOR_PAIR(1));
     mvprintw(8,0,"Equipped Weapon= %s",character->equipped_weapon);
@@ -1195,7 +1211,7 @@ void attacksquares(point squares[],int square_count,enemy enemy[],int damage,cha
                 clrtoeol;
                 attron(COLOR_PAIR(2) | A_BOLD );
                 mvprintw(37,0,"You Hit the Monster for %d Damage, It has %d HP remaining",damage,enemy[i].health);
-                attron(COLOR_PAIR(2) | A_BOLD );
+                attroff(COLOR_PAIR(2) | A_BOLD );
                 refresh();
                 }
             }
@@ -1206,6 +1222,222 @@ void attacksquares(point squares[],int square_count,enemy enemy[],int damage,cha
 
 
 
+
+void SHOOT(char board[36][71],int direction,int weapontype,enemy enemy[],int x,int y,int weapon[]){ //down left right up
+    int distance=5;
+    int damage=10;
+    if(weapontype==1){
+        distance=5;
+        damage=12;
+    }
+    if(weapontype==2){
+        distance=10;
+        damage=15;
+    }
+    if(weapontype==3){
+        distance=5;
+        damage=5;
+    }
+    if(direction==1){
+        for(int i=y;i<y+distance+1;i++){
+            if(board[i][x]=='D' || board[i][x]=='F' || board[i][x]=='S' || board[i][x]=='U' || board[i][x]=='G' ){
+            point squares[2];
+            squares[0].x=x;
+            squares[0].y=i;
+            attacksquares(squares,1,enemy,damage,board);
+            break;
+            }
+            if(i==y+distance)
+                showmsg("You did Not hit an enemy",2);
+        }
+    }
+    if(direction==2){
+        for(int i=x;i>x-distance-1;i--){
+            if(board[y][i]=='D' || board[y][i]=='F' || board[y][i]=='S' || board[y][i]=='U' || board[y][i]=='G' ){
+            point squares[2];
+            squares[0].x=i;
+            squares[0].y=y;
+            attacksquares(squares,1,enemy,damage,board);
+            break;
+            }
+            if(i==x-distance)
+                showmsg("You did Not hit an enemy",2);
+        }
+    }
+    if(direction==3){
+        for(int i=x;i<x+distance+1;i++){
+            if(board[y][i]=='D' || board[y][i]=='F' || board[y][i]=='S' || board[y][i]=='U' || board[y][i]=='G' ){
+            point squares[2];
+            squares[0].x=i;
+            squares[0].y=y;
+            attacksquares(squares,1,enemy,damage,board);
+            break;
+            }
+            if(i==x+distance)
+                showmsg("You did Not hit an enemy",2);
+        }
+    }
+    if(direction==4){
+        for(int i=y;i<y-distance-1;i--){
+            if(board[i][x]=='D' || board[i][x]=='F' || board[i][x]=='S' || board[i][x]=='U' || board[i][x]=='G' ){
+            point squares[2];
+            squares[0].x=x;
+            squares[0].y=i;
+            attacksquares(squares,1,enemy,damage,board);
+            break;
+            }
+            if(i==y-distance)
+                showmsg("You did Not hit an enemy",2);
+        }
+    }
+
+
+
+
+}
+
+
+void treasureroom(player character,char name[]){
+    room rooms[8];
+    rooms[0].startx=randit(2,10);
+    rooms[0].starty=randit(2,10);
+    rooms[0].width=randit(6,10);
+    rooms[0].length=randit(10,12);
+    int difficulty=character.difficulty;
+    int room_count=1;
+    clear();
+    refresh();
+    char board[36][71];
+    int visible[36][71];
+    setupboard(board,visible);
+    placeroom(board,rooms[0].startx,rooms[0].starty,rooms[0].length,rooms[0].width);
+    int count=0;
+    int x,y;
+    x=randit(rooms[0].startx+1,rooms[0].startx+rooms[0].length - 3);
+    y=randit(rooms[0].starty+1,rooms[0].starty+rooms[0].width - 3);
+    character.point.x=x;
+    character.point.y=y;
+    refresh();
+    visiblesetup(visible);
+    lightuproom(rooms[0],visible);
+    drawmap(board,visible);
+    refresh();
+    drawcharacter(board,character.color,x,y);
+    refresh();
+    character.floor=4;
+    enemy enemy[10];
+    //Demon
+    enemy[0].attack=3*difficulty;
+    enemy[0].health= 5;
+    enemy[0].followtype=1;
+    enemy[0].point.x=0;
+    enemy[0].point.y=0;
+    enemy[0].exist=0;
+    enemy[0].doifollow=0;
+    enemy[0].type='D';
+    enemy[1]=enemy[0];
+    //FIIIRE
+    enemy[2].attack=5*difficulty;
+    enemy[2].health=10;
+    enemy[2].followtype=1;
+    enemy[2].point.x=0;
+    enemy[2].point.y=0;
+    enemy[2].exist=0;
+    enemy[2].doifollow=0;
+    enemy[2].type='F';
+    enemy[3]=enemy[2];
+    //GIANT
+    enemy[4].attack=7*difficulty;
+    enemy[4].health=15;
+    enemy[4].followtype=2;
+    enemy[4].point.x=0;
+    enemy[4].point.y=0;
+    enemy[4].exist=0;
+    enemy[4].doifollow=0;
+    enemy[4].type='G';
+    enemy[5]=enemy[4];
+    //Snake
+    enemy[6].attack=8*difficulty;
+    enemy[6].health=20;
+    enemy[6].followtype=3;
+    enemy[6].point.x=0;
+    enemy[6].point.y=0;
+    enemy[6].exist=0;
+    enemy[6].doifollow=0;
+    enemy[6].type='S';
+    enemy[7]=enemy[6];
+    //The Undead
+    enemy[8].attack=12*difficulty;
+    enemy[8].health=30;
+    enemy[8].followtype=2;
+    enemy[8].point.x=0;
+    enemy[8].point.y=0;
+    enemy[8].exist=0;
+    enemy[8].doifollow=0;
+    enemy[8].type='U';
+    enemy[9]=enemy[8];
+    setupenemy(enemy,board,rooms,room_count);
+    for(int i=rooms[0].startx;i<=rooms[0].startx+rooms[0].length;i++)
+        for(int j=rooms[0].starty;j<=rooms[0].starty+rooms[0].width;j++){
+            if(board[j][i]=='.'){
+                if(randit(1,10)==1){
+                    board[j][i]='g';
+                }
+                if(randit(1,20)==1)
+                    board[j][i]='*';
+            }
+            if(board[j][i]=='O')
+                board[j][i]='*';
+        }
+    play_game(rooms,character,board,visible,room_count,4,name,enemy);
+
+}
+
+void VICTORY(char name[], player character) {
+    clear();
+    int score = character.gold * 100 + character.floor * 1000 + character.food * 10 + 
+                character.key * 50 + character.broken_key * 20 + 10000;
+    
+    attron(A_BOLD | COLOR_PAIR(5));
+    mvprintw(20, 20, "You Escaped from the Dungeon %s!!! Your Score Was %d", name, score);
+    attroff(A_BOLD | COLOR_PAIR(5));
+    mvprintw(21, 20, "Press any key to close the program");
+    refresh();
+    sleep(2);
+
+    FILE *scoreboard = fopen("scoreboard.txt", "r");
+    char player_names[10][50];
+    int scores[10];
+    int count = 0;
+    int found = 0;
+
+    while (count<10 && fscanf(scoreboard, "%s %d", player_names[count], &scores[count]) == 2) {
+        if (strcmp(player_names[count], name) == 0) {
+            scores[count] += score;
+            found = 1;
+        }
+        count++;
+    }
+    fclose(scoreboard);
+
+    if (!found && count<10) {
+        strcpy(player_names[count], name);
+        scores[count] = score;
+        count++;
+    }
+
+    scoreboard = fopen("scoreboard.txt", "w");
+
+    for (int i=0; i<count;i++) {
+        fprintf(scoreboard, "%s %d\n", player_names[i], scores[i]);
+    }
+    fclose(scoreboard);
+    nodelay(stdscr, FALSE);
+    getch();
+    clear();
+    endwin();
+    exit(0);
+}
 
 
 void play_game(room rooms[8],player character,char board[36][71],int visible[36][71],int room_count,int floor,char name[],enemy enemy[]){
@@ -1220,9 +1452,12 @@ void play_game(room rooms[8],player character,char board[36][71],int visible[36]
     int IREALLYAMSTARVING=0;
     int spellD=1,spellH=1,spellS=1;
     int spells=000;
+    int spelltimer=0;
+    int direction=-1;
     while(true){
         int didyoumove=0;
         int attacked=0;
+        int isita=0;
         refresh();
         int order='#';
         order=getch();
@@ -1233,9 +1468,13 @@ void play_game(room rooms[8],player character,char board[36][71],int visible[36]
             character.food--;
             character.food_status++;
             character.health+=5;
-            if(character.health>100)
-                character.health=100;
+            if(character.health>200)
+                character.health=200;
             showmsg("You Ate some Food And recovered some HP!",3);
+        }
+        if( (order=='a' || order=='A') && direction!=-1){
+            order=' ';
+            isita=1;
         }
         if(order==' '  && (strcmp(character.equipped_weapon,"Mace")==0  || strcmp(character.equipped_weapon,"Sword")==0 )){ //0 1 2 \n 3 
             point damage[7];
@@ -1264,6 +1503,51 @@ void play_game(room rooms[8],player character,char board[36][71],int visible[36]
             attacksquares(damage,7,enemy,damageint,board);
             attacked=1;
         }
+        if(order==' ' && (strcmp(character.equipped_weapon,"Magic Wand")==0  || strcmp(character.equipped_weapon,"Dagger")==0 ||
+              strcmp(character.equipped_weapon,"Normal Arrow")==0)  ){
+            int whichweapon=0;
+            if(strcmp(character.equipped_weapon,"Dagger")==0)
+                whichweapon=1;
+            if(strcmp(character.equipped_weapon,"Magic Wand")==0)
+                whichweapon=2;
+            if(strcmp(character.equipped_weapon,"Normal Arrow")==0)
+                whichweapon=3;
+            
+            showmsg("choose the direction",2);
+            nodelay(stdscr,FALSE);
+            while(true){
+            if(!isita)
+                direction=getch();
+            if(direction==KEY_DOWN){
+                SHOOT(board,1,whichweapon,enemy,character.point.x,character.point.y,character.weapon);
+                break;
+            }
+            if(direction==KEY_LEFT){
+                SHOOT(board,2,whichweapon,enemy,character.point.x,character.point.y,character.weapon);
+                break;
+            }
+            if(direction==KEY_RIGHT){
+                SHOOT(board,3,whichweapon,enemy,character.point.x,character.point.y,character.weapon);
+                break;
+
+            }
+            if(direction==KEY_UP){
+                SHOOT(board,4,whichweapon,enemy,character.point.x,character.point.y,character.weapon);
+                break;
+
+            }
+            else{
+                move(0,0);
+                clrtoeol;
+                showmsg("CHOOSE A VALID DIRECTION",2);
+            }
+            }
+            nodelay(stdscr,TRUE);
+            attacked=1;
+            character.weapon[whichweapon]--;
+            if(character.weapon[whichweapon]==0)
+                strcpy(character.equipped_weapon,"Nothing");
+        }
         if(order=='i' || order=='I'){
             clear();
             refresh();
@@ -1278,12 +1562,17 @@ void play_game(room rooms[8],player character,char board[36][71],int visible[36]
             clear();
             refresh();
             spells=spellmenu(&character);
+            spelltimer=10;
             if(ismaptrue)
                 drawmap(board,visible);
             else
                 drawmapfalse(board);
             drawcharacter(board,character.color,character.point.x,character.point.y);
         }
+        if(spells%10==1)
+            spellD=2;
+        if(spells>=100)
+            spellH=2;
 
         if(order=='s' || order=='S'){
             savegame(rooms,character,board,visible,room_count,name,enemy);
@@ -3211,30 +3500,184 @@ void play_game(room rooms[8],player character,char board[36][71],int visible[36]
                 refresh();
             }
         }
+        if(order== '7' && !didyoumove){
+            if(board[character.point.y -1][character.point.x -1]=='$'){
+                didyoumove=1;
+                if(!wasitadoor)
+                    board[character.point.y][character.point.x]='.';
+                if(wasitadoor)
+                    board[character.point.y][character.point.x]='+';
+                if(wasitastair)
+                    board[character.point.y][character.point.x]='<';
+                 if(wasitacor)
+                    board[character.point.y][character.point.x]='#';
+                 wasitadoor=0;
+                 wasitastair=0;
+                 wasitacor=0;
+                 treasureroom(character,name);
+            }
+        }
+       if(order== '8' && !didyoumove){
+                if(board[character.point.y-1][character.point.x]=='$'){
+                didyoumove=1;
+                if(!wasitadoor)
+                    board[character.point.y][character.point.x]='.';
+                if(wasitadoor)
+                    board[character.point.y][character.point.x]='+';
+                if(wasitastair)
+                    board[character.point.y][character.point.x]='<';
+                 if(wasitacor)
+                    board[character.point.y][character.point.x]='#';
+                wasitadoor=0;
+                wasitastair=0;
+                treasureroom(character,name);
+            }
+       }
+        if(order== '9' && !didyoumove){
+            if(board[character.point.y -1][character.point.x +1]=='$'){
+                didyoumove=1;
+                if(!wasitadoor)
+                    board[character.point.y][character.point.x]='.';
+                if(wasitadoor)
+                    board[character.point.y][character.point.x]='+';
+                if(wasitastair)
+                    board[character.point.y][character.point.x]='<';
+                 if(wasitacor)
+                    board[character.point.y][character.point.x]='#';
+                 wasitadoor=0;
+                 wasitastair=0;
+                 wasitacor=0;
+                 treasureroom(character,name);
+            }
+        }
+        if(order== '4' && !didyoumove){
+            if(board[character.point.y][character.point.x -1]=='$'){
+                didyoumove=1;
+                if(!wasitadoor)
+                    board[character.point.y][character.point.x]='.';
+                if(wasitadoor)
+                    board[character.point.y][character.point.x]='+';
+                if(wasitastair)
+                    board[character.point.y][character.point.x]='<';
+                 if(wasitacor)
+                    board[character.point.y][character.point.x]='#';
+                 wasitadoor=0;
+                 wasitastair=0;
+                 wasitacor=0;
+                 treasureroom(character,name);
+            }
+        }
+        if(order== '6' && !didyoumove){
+            if(board[character.point.y][character.point.x +1]=='$'){
+                didyoumove=1;
+                if(!wasitadoor)
+                    board[character.point.y][character.point.x]='.';
+                if(wasitadoor)
+                    board[character.point.y][character.point.x]='+';
+                if(wasitastair)
+                    board[character.point.y][character.point.x]='<';
+                 if(wasitacor)
+                    board[character.point.y][character.point.x]='#';
+                 wasitadoor=0;
+                 wasitastair=0;
+                 wasitacor=0;
+                 treasureroom(character,name);
+            }
+        }
+        if(order== '1' && !didyoumove){
+            if(board[character.point.y +1][character.point.x -1]=='$'){
+                didyoumove=1;
+                if(!wasitadoor)
+                    board[character.point.y][character.point.x]='.';
+                if(wasitadoor)
+                    board[character.point.y][character.point.x]='+';
+                if(wasitastair)
+                    board[character.point.y][character.point.x]='<';
+                 if(wasitacor)
+                    board[character.point.y][character.point.x]='#';
+                 wasitadoor=0;
+                 wasitastair=0;
+                 wasitacor=0;
+                 treasureroom(character,name);
+            }
+        }
+        if(order== '2' && !didyoumove){
+            if(board[character.point.y +1][character.point.x]=='$'){
+                didyoumove=1;
+                if(!wasitadoor)
+                    board[character.point.y][character.point.x]='.';
+                if(wasitadoor)
+                    board[character.point.y][character.point.x]='+';
+                if(wasitastair)
+                    board[character.point.y][character.point.x]='<';
+                 if(wasitacor)
+                    board[character.point.y][character.point.x]='#';
+                 wasitadoor=0;
+                 wasitastair=0;
+                 wasitacor=0;
+                 treasureroom(character,name);
+            }
+        }
+        if(order== '3' && !didyoumove){
+            if(board[character.point.y +1][character.point.x +1]=='$'){
+                didyoumove=1;
+                if(!wasitadoor)
+                    board[character.point.y][character.point.x]='.';
+                if(wasitadoor)
+                    board[character.point.y][character.point.x]='+';
+                if(wasitastair)
+                    board[character.point.y][character.point.x]='<';
+                 if(wasitacor)
+                    board[character.point.y][character.point.x]='#';
+                 wasitadoor=0;
+                 wasitastair=0;
+                 wasitacor=0;
+                 treasureroom(character,name);
+            }
+        }
         
 
 
     if(didyoumove || attacked){
         time++;
+        if(!spelltimer)
+            spelltimer--;
         enemyaction(board,enemy,&character);
     }
-    if(time%4==2 && character.food_status==4 && character.health!=20  && WHENEATFOOD!=time){
-        character.health+=4;
-        if(character.health!=104)
+    if(!spelltimer){
+        spells=000;
+        spellD=1;
+        spellH=1;
+        spellS=1;
+    }
+    if(time%4==2 && character.food_status==4 && character.health!=200  && WHENEATFOOD!=time){
+        character.health+=4 * spellH;
+        if(character.health!=204)
             showmsg("You recovered some Health!",3);
-        if(character.health>100)
-            character.health=100;
+        if(character.health>200)
+            character.health=200;
         WHENEATFOOD=time;
     }
     if(time%16==15  && IMSTARVING!=time && character.food_status!=1){
         character.food_status--;
         IMSTARVING=time;
     }
-    if(time%5==4 && IREALLYAMSTARVING!=time && character.food_status==1){
+    if(time%10==4 && IREALLYAMSTARVING!=time && character.food_status==1){
         character.health-=character.difficulty*2;
         IREALLYAMSTARVING=time;
         showmsg("YOU'RE STARVING!!!",2);
     }
+    if(floor==4)
+        for(int i=0;i<10;i++){
+            if(enemy[i].exist)
+                break;
+            if(i==9)
+                VICTORY(name,character);
+        }
+
+
+
+
     if(character.health<=0)
         gameoverscreen(character,name);
     showstats(character);
@@ -3242,7 +3685,7 @@ void play_game(room rooms[8],player character,char board[36][71],int visible[36]
     if(wasitadoor){
         lightupplayersroom(visible,character.point.x,character.point.y,rooms,room_count);
     }
-    usleep(50);
+    usleep(100);
     }
     
 }
@@ -3313,7 +3756,7 @@ void BEGIN(int color,int difficulty,int floor,char name[]) {
     character.gold=0;
     character.food=2;
     character.key=0;
-    character.health=100;
+    character.health=200;
     character.broken_key=0;
     character.spell[0]=0;
     character.spell[1]=0;
