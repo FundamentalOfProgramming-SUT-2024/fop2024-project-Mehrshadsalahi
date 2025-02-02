@@ -202,7 +202,7 @@ void enemyaction(char board[36][71],enemy enemy[],player *character){
         }
     }
     for(int i=0;i<10;i++){
-        if(enemy[i].exist && enemy[i].doifollow){
+        if(enemy[i].exist && enemy[i].doifollow>0){
             if(distance(enemy[i].point.x,enemy[i].point.y,character->point.x,character->point.y)<3){
                 enemy[i].doifollow--;
                 //enemy attack
@@ -363,32 +363,30 @@ void buildpath(char board[36][71], room room1, room room2) {
                 board[i][door2.x]='#';        
         }
         }
-        if(door2.y < room1.starty + room1.width && door2.y > room1.starty){
+        if(door1.y < room2.starty + room2.width && door1.y > room2.starty){
                 int val=1;
-                if(board[door2.y][door2.x+1]=='_'  || board[door2.y][door2.x+1]=='|')
-                    val=0;
-                for(int i=door2.x+1;i<room1.startx;i++)
-                    if(board[door2.y][i]!=' ')
+                for(int i=door1.x-1;i>room2.startx+room2.length;i--){
+                    if(board[door1.y][i]!=' ')
                         val=0;
+                }
                 if(val){
-                for(int i=door2.x+1;i<room1.startx;i++)
-                    board[door2.y][i]='#';
-                board[door2.y][door2.x]='+';
-                board[door2.y][room1.startx]='+';
+                for(int i=door1.x-1;i>room2.startx+room2.length;i--)
+                    board[door1.y][i]='#';
+                board[door1.y][door1.x]='+';
+                board[door1.y][room2.startx+room2.length]='+';
         }
         }
-        if(door1.x > room2.startx  && door1.x < room2.startx+room2.length){
+        if(door2.x > room1.startx  && door2.x < room1.startx+room1.length){
             int val=1;
-            if(board[door1.y+1][door1.x]=='|' || board[door1.y+1][door1.x]=='_')
+            for(int i=door2.y-1;i>room1.width+room1.starty;i--)
+                if(board[i][door2.x]!=' ')
                 val=0;
             if(val){
-            int i=door1.y+1;
-            board[door1.y][door1.x]='+';
-            while(board[i][door1.x]!='_'){
-                board[i][door1.x]='#';
-                i++;
-            }
-            board[i][door1.x]='+';
+            for(int i=door2.y-1;i>room1.width+room1.starty;i--)
+                board[i][door2.x]='#';
+            
+            board[door2.y][door2.x]='+';
+            board[room1.starty+room1.width][door2.x]='+';
             }
         }
     }
@@ -466,6 +464,28 @@ void buildpath(char board[36][71], room room1, room room2) {
         }
 
     }
+    if(room1.startx < room2.startx  &&  room1.starty > room2.starty){
+        int valid=1;
+        point door1,door2;
+        door1.x=room1.startx+room1.length;
+        door1.y=room1.starty+randit(2,room1.width-2);
+        door2.x=room2.startx+randit(2,room2.length-2);
+        door2.y=room2.starty+room2.width;
+        for(int i=door1.x+1;i<=door2.x;i++)
+            if(board[door1.y][i]!=' ')
+                valid=0;
+        for(int i=door1.y;i>door2.y;i--)
+            if(board[i][door2.x]!=' ')
+                valid=0;
+        if(valid){
+        for(int i=door1.x+1;i<=door2.x;i++)
+            board[door1.y][i]='#';
+        for(int i=door1.y;i>door2.y;i--)
+            board[i][door2.x]='#';
+        board[door1.y][door1.x]='+';
+        board[door2.y][door2.x]='+';
+        }
+    }
 
 }
 
@@ -494,6 +514,27 @@ void spawncorridors(int room_count, room rooms[], char board[36][71]) {
                 if(i==j)
                     continue;
                 buildpath(board,rooms[j],rooms[i]);
+            }
+        for(int i=0;i<room_count;i++)
+            for(int j=0;j<room_count;j++){
+                if(i==j)
+                    continue;
+                buildpath(board,rooms[j],rooms[i]);
+            }
+        for(int j=1;j<70;j++)
+            for(int i=1;i<35;i++){
+                if(board[i][j]=='#'){
+                    if(board[i][j+1]=='#' && (board[i+1][j]=='#' || board[i+1][j]=='+') && (board[i-1][j]=='#' || board[i-1][j]=='+' ))
+                        board[i][j+1]=' '; 
+                    if(board[i+1][j]=='#' && (board[i][j+1]=='#' || board[i][j+1]=='+') && (board[i][j-1]=='#' || board[i][j-1]=='+' ))
+                        board[i+1][j]=' ';
+                }
+                if(board[i][j]=='+'){
+                    if(board[i][j+1]=='+')
+                        board[i][j+1]='_';
+                    if(board[i+1][j]=='+')
+                        board[i+1][j]='|';
+                }
             }
  }
 
@@ -821,6 +862,20 @@ void lightupplayersroom(int visible[36][71],int x,int y,room rooms[8],int room_c
 
 void showstats(player character){
     attron(A_BOLD);
+    move(2,80);
+    clrtoeol;
+    move(3,80);
+    clrtoeol;
+    move(4,80);
+    clrtoeol;
+    move(5,80);
+    clrtoeol;
+    move(6,80);
+    clrtoeol;
+    move(7,80);
+    clrtoeol;
+    move(8,80);
+    clrtoeol;
     if(character.difficulty==1)
         mvprintw(1,80,"Game Difficulty: Easy");
     if(character.difficulty==2)
@@ -3824,23 +3879,3 @@ void BEGIN(int color,int difficulty,int floor,char name[]) {
     setupenemy(enemy,board,rooms,room_count);
     play_game(rooms,character,board,visible,room_count,floor,name,enemy);
 }
-//int main() {
- //   initscr();
- //   noecho();
- //   cbreak();
- //   curs_set(0);
- //   srand(time(NULL));
-
- //   player character = { .C = {0, 0}, .color = 2, .key = 0, .food = 0, .gold = 0, .difficulty = 0 };
-
- //   if (has_colors()) {
- //       start_color();
- //       init_pair(1, COLOR_WHITE, COLOR_GREEN);
-  //      init_pair(2, COLOR_RED, COLOR_BLACK);
-  //      init_pair(3, COLOR_GREEN, COLOR_BLACK);
-  //  }
-  //  BEGIN(character);
-//
- //   endwin();
-  //  return 0;
-//}

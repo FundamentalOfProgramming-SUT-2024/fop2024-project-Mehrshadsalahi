@@ -219,9 +219,6 @@ void PreGameMenu(char name[],char password[]){
             if(choice==1){
                 clear();
                 attron(A_BOLD|A_UNDERLINE|COLOR_PAIR(2));
-                mvprintw(1,1,"PLEASE MAXIMIZE YOUR TERMINAL TO ENSURE YOU HAVE THE PROPER EXPERIENCE");
-                mvprintw(3,1,"If the game lags at any point use \"A(or any non gameplay related key\" to update it ");
-                refresh();
                 mvprintw(2,1,"game will begin in 5 seconds");
                 attroff(A_BOLD|A_UNDERLINE|COLOR_PAIR(2));
                 refresh();
