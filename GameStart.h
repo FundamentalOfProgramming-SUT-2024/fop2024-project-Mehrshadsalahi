@@ -19,6 +19,9 @@ typedef struct{
     int health;
     int attack;
     int followtype; //1=doesnt move //2=moves for 5 TIME //3=snake
+    int exist;
+    int doifollow;
+    char type;
 }enemy;
 
 typedef struct {
@@ -45,7 +48,7 @@ typedef struct {
     int type1;
 }room;
 
-void play_game(room rooms[8], player character, char board[36][71], int visible[36][71], int room_count, int floor, char name[]);
+void play_game(room rooms[8], player character, char board[36][71], int visible[36][71], int room_count, int floor, char name[], enemy enemy[]);
 
 void nextfloor(int room_count, int floor, room rooms[8], player character,char name[]);
 
@@ -67,8 +70,8 @@ void generatefoodgoldblackgold(char board[36][71],room rooms[],int room_count,in
         if(chancefood!=1)
             continue;
         else{
-            int lengran=randit(2,rooms[i].length-4),widran=randit(2,rooms[i].length-4);
-            board[rooms[i].starty+widran][rooms[i].startx+lengran]='F';
+            int lengran=randit(2,rooms[i].length-4),widran=randit(2,rooms[i].width-4);
+            board[rooms[i].starty+widran][rooms[i].startx+lengran]='@';
         }
     }
     for(int i=0;i<room_count;i++){
@@ -76,7 +79,7 @@ void generatefoodgoldblackgold(char board[36][71],room rooms[],int room_count,in
         if(chancegold!=7)
             continue;
         else{
-            int lengran=randit(2,rooms[i].length-4),widran=randit(2,rooms[i].length-4);
+            int lengran=randit(2,rooms[i].length-4),widran=randit(2,rooms[i].width-4);
             board[rooms[i].starty+widran][rooms[i].startx+lengran]='g';
         }
     }
@@ -85,8 +88,8 @@ void generatefoodgoldblackgold(char board[36][71],room rooms[],int room_count,in
         if(chanceblackgold!=7)
             continue;
         else{
-            int lengran=randit(2,rooms[i].length-4),widran=randit(2,rooms[i].length-4);
-            board[rooms[i].starty+widran][rooms[i].startx+lengran]='G';
+            int lengran=randit(2,rooms[i].length-4),widran=randit(2,rooms[i].width-4);
+            board[rooms[i].starty+widran][rooms[i].startx+lengran]='*';
         }
     }
 }
@@ -125,16 +128,16 @@ void generateweaponandspell(char board[36][71],room rooms[],int room_count){
         if(ran1!=3)
             continue;
         else{
-            int lengran=randit(2,rooms[i].length-4),widran=randit(2,rooms[i].length-4);
+            int lengran=randit(2,rooms[i].length-4),widran=randit(2,rooms[i].width-2);
             board[rooms[i].starty+widran][rooms[i].startx+lengran]=weapon[ran2];
         }
     }
     for(int i=0;i<room_count;i++){
-        int ran3=randit(1,10),ran4=(0,2);
+        int ran3=randit(1,10),ran4=randit(0,2);
         if(ran3!=7)
             continue;
         else{
-            int lengran=randit(2,rooms[i].length-4),widran=randit(2,rooms[i].length-4);
+            int lengran=randit(2,rooms[i].length-4),widran=randit(2,rooms[i].width-2);
             board[rooms[i].starty+widran][rooms[i].startx+lengran]=spell[ran4];
         }
     }
@@ -153,13 +156,100 @@ void showmsg(char msg[], int color){ //green=3 //red=2 //normal=1
 }
 
 
+
+void setupenemy(enemy enemy[],char board[36][71],room rooms[],int room_count){
+    for(int i=0;i<10;i++){
+        if(randit(1,3)==1)
+            enemy[i].exist=1;
+    }
+    for(int i=0;i<10;i++)
+        if(enemy[i].exist){
+            while(true){
+            int roomnumber=randit(0,room_count-1);
+            int widran=randit(2,rooms[roomnumber].width-2),lengran=randit(2,rooms[roomnumber].length-2);
+            if(board[rooms[roomnumber].starty + widran][rooms[roomnumber].startx + lengran]=='.'){
+                enemy[i].point.x=rooms[roomnumber].startx + lengran;
+                enemy[i].point.y=rooms[roomnumber].starty + widran;
+                board[enemy[i].point.y][enemy[i].point.x]=enemy[i].type;
+                break;
+            }
+        }
+        } 
+}
+
 int distance(int x1, int y1, int x2, int y2) {
     int ans = (x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1);
     return ans;
 }
 
+
+
+void enemyaction(char board[36][71],enemy enemy[],player *character){
+    for(int i=0;i<10;i++){
+        if(enemy[i].exist && enemy[i].doifollow==0){
+            if( abs(enemy[i].point.x-character->point.x) < 5 && abs(enemy[i].point.y - character->point.y) < 5 ){
+                if(enemy[i].type=='S')
+                    enemy[i].doifollow=10000;
+                else
+                    enemy[i].doifollow=5;
+            }
+        }
+    }
+    for(int i=0;i<10;i++){
+        if(enemy[i].exist && enemy[i].doifollow){
+            if(distance(enemy[i].point.x,enemy[i].point.y,character->point.x,character->point.y)<3){
+                enemy[i].doifollow--;
+                //enemy attack
+                character->health-=enemy[i].attack;
+                move(0,0);
+                clrtoeol;
+                attron(COLOR_PAIR(2) | A_BOLD );
+                mvprintw(0,0,"The Monster hit you for %d damage!",enemy[i].attack);
+                attron(COLOR_PAIR(2) | A_BOLD );
+                refresh();
+                //enemy attack
+                continue;
+            }
+            if((character->point.x > enemy[i].point.x)  &&  board[enemy[i].point.y][enemy[i].point.x+1]=='.'){
+                board[enemy[i].point.y][enemy[i].point.x]='.';
+                enemy[i].point.x+=1;
+                board[enemy[i].point.y][enemy[i].point.x]=enemy[i].type;
+                enemy[i].doifollow--;
+                continue;
+            }
+            if((character->point.x < enemy[i].point.x)  &&  board[enemy[i].point.y][enemy[i].point.x-1]=='.'){
+                board[enemy[i].point.y][enemy[i].point.x]='.';
+                enemy[i].point.x-=1;
+                board[enemy[i].point.y][enemy[i].point.x]=enemy[i].type;
+                enemy[i].doifollow--;
+                continue;
+            }
+            if((character->point.y > enemy[i].point.y)  &&  board[enemy[i].point.y+1][enemy[i].point.x]=='.'){
+                board[enemy[i].point.y][enemy[i].point.x]='.';
+                enemy[i].point.y+=1;
+                board[enemy[i].point.y][enemy[i].point.x]=enemy[i].type;
+                enemy[i].doifollow--;
+                continue;
+            }
+            if((character->point.y < enemy[i].point.y)  &&  board[enemy[i].point.y-1][enemy[i].point.x]=='.'){
+                board[enemy[i].point.y][enemy[i].point.x]='.';
+                enemy[i].point.y-=1;
+                board[enemy[i].point.y][enemy[i].point.x]=enemy[i].type;
+                enemy[i].doifollow--;
+                continue;
+            }
+
+        }
+    }
+
+
+}
+
+
+
+
 int closestroom(room rooms[], int room_count, int thisone, int notthis1, int notthis2) {
-    int current_min = 100000;
+    int current_min = 1000000;
     int ans = 20;
     
     for (int i = 0; i < room_count; i++) {
@@ -374,20 +464,32 @@ void buildpath(char board[36][71], room room1, room room2) {
 }
 
 void spawncorridors(int room_count, room rooms[], char board[36][71]) {
-    for (int i = 0; i < room_count; i++) {
-        int close = closestroom(rooms, room_count, i, i, i);
-        buildpath(board, rooms[i], rooms[close]);
-        buildpath(board, rooms[i], rooms[close]);
-        int block=close;
-        close = closestroom(rooms,room_count,i,block,i);
-        buildpath(board, rooms[i], rooms[close]);
-        buildpath(board, rooms[i], rooms[close]);
-        close = closestroom(rooms,room_count,i,block,close);
-        buildpath(board,rooms[i],rooms[close]);
-        buildpath(board,rooms[i],rooms[close]);
+//     for (int i = 0; i < room_count; i++) {
+//         int close = closestroom(rooms, room_count, i, i, i);
+//         buildpath(board, rooms[i], rooms[close]);
+//         buildpath(board, rooms[i], rooms[close]);
+//         buildpath(board, rooms[i], rooms[close]);
+//         int block=close;
+//         close = closestroom(rooms,room_count,i,block,i);
+//         buildpath(board, rooms[i], rooms[close]);
+//         buildpath(board, rooms[i], rooms[close]);
+//         close = closestroom(rooms,room_count,i,block,close);
+//         buildpath(board,rooms[i],rooms[close]);
         
-    }
-}
+//     }
+        for(int i=0;i<room_count;i++)
+            for(int j=0;j<room_count;j++){
+                if(i==j)
+                    continue;
+                buildpath(board,rooms[i],rooms[j]);
+            }
+        for(int i=0;i<room_count;i++)
+            for(int j=0;j<room_count;j++){
+                if(i==j)
+                    continue;
+                buildpath(board,rooms[j],rooms[i]);
+            }
+ }
 
 
 
@@ -407,7 +509,7 @@ void visiblesetup(int visible[36][71]){
     }
 }
 
-void savegame(room rooms[],player character,char board[36][71],int visible[36][71],int room_count,char name[]){
+void savegame(room rooms[],player character,char board[36][71],int visible[36][71],int room_count,char name[],enemy enemy[]){
     FILE *roomfile = fopen("rooms.txt", "r");
     if(roomfile == NULL)
         roomfile = fopen("rooms.txt", "w");
@@ -424,8 +526,12 @@ void savegame(room rooms[],player character,char board[36][71],int visible[36][7
     if(visiblefile == NULL)
         visiblefile = fopen("visible.txt", "w");
     fclose(visiblefile);
+    FILE *enemyfile = fopen("enemy.txt", "r");
+    if(enemyfile == NULL)
+        enemyfile = fopen("enemy.txt", "w");
+    fclose(enemyfile);
 
-    roomfile=fopen("rooms.txt","a");
+    roomfile=fopen("rooms.txt","w");
     fprintf(roomfile,"%d//",room_count);
     for(int i=0;i<room_count;i++){
         fprintf(roomfile,"%d,%d,%d,%d,%d||",rooms[i].startx,rooms[i].starty,rooms[i].length,rooms[i].width,rooms[i].type1);
@@ -433,20 +539,26 @@ void savegame(room rooms[],player character,char board[36][71],int visible[36][7
     fprintf(roomfile,"\n");
     fclose(roomfile);
 
-    charfile=fopen("character.txt","a");
+    enemyfile=fopen("enemy.txt","w");
+    for(int i=0;i<10;i++){
+        fprintf(enemyfile,"%d,%d,%d,%d,%d,%d,%d ||",enemy[i].point.x,enemy[i].point.y,enemy[i].health,enemy[i].attack,enemy[i].exist,enemy[i].doifollow,enemy[i].type);
+    }
+    fclose(enemyfile);
+
+    charfile=fopen("character.txt","w");
     fprintf(charfile,"%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,\n",character.point.x,character.point.y,character.health,character.color,character.key,character.broken_key,
     character.food,character.gold,character.difficulty,character.weapon[0],character.weapon[1],character.weapon[2],character.weapon[3],character.weapon[4],
     character.spell[0],character.spell[1],character.spell[2],character.floor);
     fclose(charfile);
 
-    boardfile=fopen("board.txt","a");
+    boardfile=fopen("board.txt","w");
     for(int i=0;i<36;i++)
         for(int j=0;j<71;j++)
             fputc(board[i][j],boardfile);
     fprintf(boardfile,"\n");
     fclose(boardfile);
 
-    visiblefile=fopen("visible.txt","a");
+    visiblefile=fopen("visible.txt","w");
     for(int i=0;i<36;i++)
         for(int j=0;j<71;j++)
             fprintf(visiblefile,"%d",visible[i][j]);
@@ -456,7 +568,7 @@ void savegame(room rooms[],player character,char board[36][71],int visible[36][7
     if(namefile == NULL)
         namefile = fopen("name.txt", "w");
     fclose(namefile);
-    namefile=fopen("name.txt","a");
+    namefile=fopen("name.txt","w");
     fprintf(namefile,"%s\n",name);
     fclose(namefile);
 }
@@ -592,22 +704,22 @@ void drawmap(char board[36][71],int visible[36][71]) {
                 mvprintw(i,j,"%s",Sword);
                 continue;
             }
-            if(board[i][j]=='F')
+            if(board[i][j]=='@')
                 attron(COLOR_PAIR(3));
-            if(board[i][j]== 'g'  || board[i][j]=='G')
+            if(board[i][j]== 'g'  || board[i][j]=='*')
                 attron(COLOR_PAIR(5));
-//           if(board[i][j]=='M' || board[i][j]=='D' || board[i][j]=='W'  || board[i][j]=='N'  || board[i][j]=='S' )
-//               attron(COLOR_PAIR(2));
+            if(board[i][j]=='D' || board[i][j]=='F' || board[i][j]=='G'  || board[i][j]=='S'  || board[i][j]=='U' )
+                attron(COLOR_PAIR(2));
            if(board[i][j]=='d' || board[i][j]=='s' || board[i][j]=='h')
                 attron(COLOR_PAIR(8));
             mvprintw(i,j,"%c",board[i][j]);
-//            if(board[i][j]=='M' || board[i][j]=='D' || board[i][j]=='W'  || board[i][j]=='N'  || board[i][j]=='S' )
-//                attroff(COLOR_PAIR(2));
+            if(board[i][j]=='D' || board[i][j]=='F' || board[i][j]=='G'  || board[i][j]=='S'  || board[i][j]=='U' )
+                attroff(COLOR_PAIR(2));
             if(board[i][j]=='d' || board[i][j]=='s' || board[i][j]=='h')
                 attroff(COLOR_PAIR(8));
-            if(board[i][j]== 'g'  || board[i][j]=='G')
+            if(board[i][j]== 'g'  || board[i][j]=='*')
                 attroff(COLOR_PAIR(5));
-            if(board[i][j]=='F')
+            if(board[i][j]=='@')
                 attroff(COLOR_PAIR(3));
             }
         }
@@ -647,22 +759,22 @@ void drawmapfalse(char board[36][71]) {
                 mvprintw(i,j,"%s",Sword);
                 continue;
             }
-            if(board[i][j]=='F')
+            if(board[i][j]=='@')
                 attron(COLOR_PAIR(3));
-            if(board[i][j]== 'g'  || board[i][j]=='G')
+            if(board[i][j]== 'g'  || board[i][j]=='*')
                 attron(COLOR_PAIR(5));
-            if(board[i][j]=='M' || board[i][j]=='D' || board[i][j]=='W'  || board[i][j]=='N'  || board[i][j]=='S' )
+            if(board[i][j]=='D' || board[i][j]=='F' || board[i][j]=='G'  || board[i][j]=='S'  || board[i][j]=='U' )
                 attron(COLOR_PAIR(2));
             if(board[i][j]=='d' || board[i][j]=='s' || board[i][j]=='h')
                 attron(COLOR_PAIR(8));
             mvprintw(i,j,"%c",board[i][j]);
-            if(board[i][j]=='M' || board[i][j]=='D' || board[i][j]=='W'  || board[i][j]=='N'  || board[i][j]=='S' )
+            if(board[i][j]=='D' || board[i][j]=='F' || board[i][j]=='G'  || board[i][j]=='S'  || board[i][j]=='U' )
                 attroff(COLOR_PAIR(2));
             if(board[i][j]=='d' || board[i][j]=='s' || board[i][j]=='h')
                 attroff(COLOR_PAIR(8));
-            if(board[i][j]== 'g'  || board[i][j]=='G')
+            if(board[i][j]== 'g'  || board[i][j]=='*')
                 attroff(COLOR_PAIR(5));
-            if(board[i][j]=='F')
+            if(board[i][j]=='@')
                 attroff(COLOR_PAIR(3));
         }
     }
@@ -673,8 +785,8 @@ void drawmapfalse(char board[36][71]) {
 
 
 void lightupplayer(int visible[36][71],int x,int y){
-    for(int i=-2;i<3;i++)
-        for(int j=-2;j<3;j++)
+    for(int i=-3;i<4;i++)
+        for(int j=-3;j<4;j++)
             visible[y+j][x+i]=1;
 
 
@@ -755,10 +867,10 @@ void treasure(room rooms[],char board[36][71],int room_count){
     for(int i=rooms[E].startx;i<=rooms[E].startx+rooms[E].length;i++)
         for(int j=rooms[E].starty;j<=rooms[E].starty+rooms[E].width;j++){
             if(board[j][i]=='.'){
-                if(randit(1,8)==1){
+                if(randit(1,15)==1){
                     board[j][i]='g';
                 }
-                if(randit(1,10)==1)
+                if(randit(1,40)==1)
                     board[j][i]='G';
             }
             if(board[j][i]=='O')
@@ -787,7 +899,8 @@ void nextfloor(int room_count,int floor,room rooms[8],player character,char name
     }
     clear();
     placeroom(board,rooms2[0].startx,rooms2[0].starty,rooms2[0].length,rooms2[0].width);
-    int q =5+(rand() % 3);
+    int q =6+(rand() % 3);
+    room_count=q;
     int count=1;
     int max_attempts = 10000;
     int attempts = 0;
@@ -821,6 +934,7 @@ void nextfloor(int room_count,int floor,room rooms[8],player character,char name
     lightuproom(rooms2[0],visible);
     spawncorridors(room_count,rooms2,board);
     generateweaponandspell(board,rooms2,room_count);
+    generatefoodgoldblackgold(board,rooms2,room_count,character.difficulty);
     if(floor!=3)
         spawnstair(board,rooms2,room_count);
     if(floor==3)
@@ -828,7 +942,59 @@ void nextfloor(int room_count,int floor,room rooms[8],player character,char name
     drawmap(board,visible);
     drawcharacter(board,character.color,character.point.x,character.point.y);
     refresh();
-    play_game(rooms2,character,board,visible,room_count,floor+1,name);
+    enemy enemy[10];
+    //Demon
+    enemy[0].attack=3*character.difficulty;
+    enemy[0].health= 5;
+    enemy[0].followtype=1;
+    enemy[0].point.x=0;
+    enemy[0].point.y=0;
+    enemy[0].exist=0;
+    enemy[0].doifollow=0;
+    enemy[0].type='D';
+    enemy[1]=enemy[0];
+    //FIIIRE
+    enemy[2].attack=5*character.difficulty;
+    enemy[2].health=10;
+    enemy[2].followtype=1;
+    enemy[2].point.x=0;
+    enemy[2].point.y=0;
+    enemy[2].exist=0;
+    enemy[2].doifollow=0;
+    enemy[2].type='F';
+    enemy[3]=enemy[2];
+    //GIANT
+    enemy[4].attack=7*character.difficulty;
+    enemy[4].health=15;
+    enemy[4].followtype=2;
+    enemy[4].point.x=0;
+    enemy[4].point.y=0;
+    enemy[4].exist=0;
+    enemy[4].doifollow=0;
+    enemy[4].type='G';
+    enemy[5]=enemy[4];
+    //Snake
+    enemy[6].attack=8*character.difficulty;
+    enemy[6].health=20;
+    enemy[6].followtype=3;
+    enemy[6].point.x=0;
+    enemy[6].point.y=0;
+    enemy[6].exist=0;
+    enemy[6].doifollow=0;
+    enemy[6].type='S';
+    enemy[7]=enemy[6];
+    //The Undead
+    enemy[8].attack=12*character.difficulty;
+    enemy[8].health=30;
+    enemy[8].followtype=2;
+    enemy[8].point.x=0;
+    enemy[8].point.y=0;
+    enemy[8].exist=0;
+    enemy[8].doifollow=0;
+    enemy[8].type='U';
+    enemy[9]=enemy[8];
+    setupenemy(enemy,board,rooms2,room_count);
+    play_game(rooms2,character,board,visible,room_count,floor+1,name,enemy);
 }
 
 void loadgame(int savenum){
@@ -863,6 +1029,8 @@ void loadgame(int savenum){
         &character.spell[0], &character.spell[1], &character.spell[2],
         &character.floor);
     fclose(charfile);
+    strcpy(character.equipped_weapon,"Mace");
+    character.food_status=2;
     for (int i = 0; i < 36; i++) {
         for (int j = 0; j < 71; j++) {
             board[i][j] = fgetc(boardfile);
@@ -881,7 +1049,8 @@ void loadgame(int savenum){
 //    visiblesetup(visible);
 //    lightuproom(rooms[0],visible);
     drawmap(board,visible);
-    play_game(rooms,character,board,visible,room_count,character.floor,name);
+    drawcharacter(board,character.color,character.point.x,character.point.y);
+    //play_game(rooms,character,board,visible,room_count,character.floor,name);
     }
 }
 
@@ -919,6 +1088,8 @@ int spellmenu(player *character){
         use3=0;
         result+=1;
     }
+    if(order=='q' || order=='Q')
+        break;
     }
     return result;
 }
@@ -1004,27 +1175,54 @@ void gameoverscreen(player character,char name[]){
     nodelay(stdscr,FALSE);
     getch();
     clear();
+    endwin();
     exit(0);
+}
+
+
+void attacksquares(point squares[],int square_count,enemy enemy[],int damage,char board[36][71]){
+    for(int i=0;i<10;i++){
+        for(int j=0;j<square_count;j++){
+            if(enemy[i].point.x==squares[j].x  && enemy[i].point.y==squares[j].y ){
+                enemy[i].health-=damage;
+                if(enemy[i].health <= 0 ){
+                    enemy[i].exist=0;
+                    board[enemy[i].point.y][enemy[i].point.x]='.';
+                    showmsg("You Killed the MONSTER!",3);
+                }
+                else{
+                move(37,0);
+                clrtoeol;
+                attron(COLOR_PAIR(2) | A_BOLD );
+                mvprintw(37,0,"You Hit the Monster for %d Damage, It has %d HP remaining",damage,enemy[i].health);
+                attron(COLOR_PAIR(2) | A_BOLD );
+                refresh();
+                }
+            }
+        }
+    }
+    
 }
 
 
 
 
 
-
-void play_game(room rooms[8],player character,char board[36][71],int visible[36][71],int room_count,int floor,char name[]){
+void play_game(room rooms[8],player character,char board[36][71],int visible[36][71],int room_count,int floor,char name[],enemy enemy[]){
     nodelay(stdscr, TRUE);
     int WHENEATFOOD=0;
     int time=0;
-    int WHENWASBATTLE=-2;
     int wasitastair=0;
     int ismaptrue=1;
     int wasitadoor=0;
     int wasitacor=0;
     int IMSTARVING=0;
     int IREALLYAMSTARVING=0;
+    int spellD=1,spellH=1,spellS=1;
+    int spells=000;
     while(true){
         int didyoumove=0;
+        int attacked=0;
         refresh();
         int order='#';
         order=getch();
@@ -1039,7 +1237,33 @@ void play_game(room rooms[8],player character,char board[36][71],int visible[36]
                 character.health=100;
             showmsg("You Ate some Food And recovered some HP!",3);
         }
-
+        if(order==' '  && (strcmp(character.equipped_weapon,"Mace")==0  || strcmp(character.equipped_weapon,"Sword")==0 )){ //0 1 2 \n 3 
+            point damage[7];
+            damage[0].x=character.point.x-1;
+            damage[0].y=character.point.y-1;
+            damage[1].x=character.point.x;
+            damage[1].y=character.point.y-1;
+            damage[2].x=character.point.x+1;
+            damage[2].y=character.point.y-1;
+            damage[3].x=character.point.x-1;
+            damage[3].y=character.point.y;
+            damage[4].x=character.point.x+1;
+            damage[4].y=character.point.y;
+            damage[5].x=character.point.x-1;
+            damage[5].y=character.point.y+1;
+            damage[6].x=character.point.x;
+            damage[6].y=character.point.y+1;
+            damage[7].x=character.point.x+1;
+            damage[7].y=character.point.y+1;
+            int damageint=0;
+            if(strcmp(character.equipped_weapon,"Mace")==0)
+                damageint=5;
+            if(strcmp(character.equipped_weapon,"Sword")==0)
+                damageint=10;
+            damageint*=spellD;
+            attacksquares(damage,7,enemy,damageint,board);
+            attacked=1;
+        }
         if(order=='i' || order=='I'){
             clear();
             refresh();
@@ -1053,7 +1277,7 @@ void play_game(room rooms[8],player character,char board[36][71],int visible[36]
         if(order=='o' || order=='O'){
             clear();
             refresh();
-            spellmenu(&character);
+            spells=spellmenu(&character);
             if(ismaptrue)
                 drawmap(board,visible);
             else
@@ -1062,7 +1286,7 @@ void play_game(room rooms[8],player character,char board[36][71],int visible[36]
         }
 
         if(order=='s' || order=='S'){
-            savegame(rooms,character,board,visible,room_count,name);
+            savegame(rooms,character,board,visible,room_count,name,enemy);
             showmsg("Game has been saved",3);
         }
         if( (order=='m' || order=='M')  && ismaptrue ){
@@ -1881,7 +2105,7 @@ void play_game(room rooms[8],player character,char board[36][71],int visible[36]
         }
 
         if(order== '7' && !didyoumove){
-            if(board[character.point.y -1][character.point.x -1]=='F'){
+            if(board[character.point.y -1][character.point.x -1]=='@'){
                 didyoumove=1;
                 if(!wasitadoor)
                     board[character.point.y][character.point.x]='.';
@@ -1937,7 +2161,7 @@ void play_game(room rooms[8],player character,char board[36][71],int visible[36]
                 refresh();
 
             }
-            else if(board[character.point.y -1][character.point.x -1]=='G'){
+            else if(board[character.point.y -1][character.point.x -1]=='*'){
                 didyoumove=1;
                 if(!wasitadoor)
                     board[character.point.y][character.point.x]='.';
@@ -1966,7 +2190,7 @@ void play_game(room rooms[8],player character,char board[36][71],int visible[36]
             }
         }
        if(order== '8' && !didyoumove){
-                if(board[character.point.y-1][character.point.x]=='F'){
+                if(board[character.point.y-1][character.point.x]=='@'){
                 didyoumove=1;
                 if(!wasitadoor)
                     board[character.point.y][character.point.x]='.';
@@ -2014,7 +2238,7 @@ void play_game(room rooms[8],player character,char board[36][71],int visible[36]
                 refresh();
                 refresh();
                 }
-                else if(board[character.point.y-1][character.point.x]=='G'){
+                else if(board[character.point.y-1][character.point.x]=='*'){
                 didyoumove=1;
                 if(!wasitadoor)
                     board[character.point.y][character.point.x]='.';
@@ -2042,7 +2266,7 @@ void play_game(room rooms[8],player character,char board[36][71],int visible[36]
             
         }
      if(order== '9' && !didyoumove){
-            if(board[character.point.y -1][character.point.x +1]=='F'){
+            if(board[character.point.y -1][character.point.x +1]=='@'){
                 didyoumove=1;
                 if(!wasitadoor)
                     board[character.point.y][character.point.x]='.';
@@ -2096,7 +2320,7 @@ void play_game(room rooms[8],player character,char board[36][71],int visible[36]
                 refresh();
                 refresh();
             }
-            else if(board[character.point.y -1][character.point.x +1]=='G'){
+            else if(board[character.point.y -1][character.point.x +1]=='*'){
                 didyoumove=1;
                 if(!wasitadoor)
                     board[character.point.y][character.point.x]='.';
@@ -2120,7 +2344,7 @@ void play_game(room rooms[8],player character,char board[36][71],int visible[36]
             }
         }
        if(order== '4' && !didyoumove){
-            if(board[character.point.y][character.point.x -1]=='F'){
+            if(board[character.point.y][character.point.x -1]=='@'){
                 didyoumove=1;
                 if(!wasitadoor)
                     board[character.point.y][character.point.x]='.';
@@ -2174,7 +2398,7 @@ void play_game(room rooms[8],player character,char board[36][71],int visible[36]
                 refresh();
 
             }
-            else if(board[character.point.y][character.point.x -1]=='G'){
+            else if(board[character.point.y][character.point.x -1]=='*'){
                 didyoumove=1;
                 if(!wasitadoor)
                     board[character.point.y][character.point.x]='.';
@@ -2202,7 +2426,7 @@ void play_game(room rooms[8],player character,char board[36][71],int visible[36]
             
         }
        if(order== '6' && !didyoumove){
-            if(board[character.point.y][character.point.x +1]=='F'){
+            if(board[character.point.y][character.point.x +1]=='@'){
                 didyoumove=1;
                 if(!wasitadoor)
                     board[character.point.y][character.point.x]='.';
@@ -2256,7 +2480,7 @@ void play_game(room rooms[8],player character,char board[36][71],int visible[36]
                 refresh();
 
             }
-        else if(board[character.point.y][character.point.x +1]=='G'){
+        else if(board[character.point.y][character.point.x +1]=='*'){
                 didyoumove=1;
                 if(!wasitadoor)
                     board[character.point.y][character.point.x]='.';
@@ -2284,7 +2508,7 @@ void play_game(room rooms[8],player character,char board[36][71],int visible[36]
             
         }
         if(order== '1' && !didyoumove){
-            if(board[character.point.y +1][character.point.x -1]=='F'){
+            if(board[character.point.y +1][character.point.x -1]=='@'){
                 didyoumove=1;
                 if(!wasitadoor)
                     board[character.point.y][character.point.x]='.';
@@ -2340,7 +2564,7 @@ void play_game(room rooms[8],player character,char board[36][71],int visible[36]
                 refresh();
 
             }
-            else if(board[character.point.y +1][character.point.x -1]=='G'){
+            else if(board[character.point.y +1][character.point.x -1]=='*'){
                 didyoumove=1;
                 if(!wasitadoor)
                     board[character.point.y][character.point.x]='.';
@@ -2369,7 +2593,7 @@ void play_game(room rooms[8],player character,char board[36][71],int visible[36]
             
         }
       if(order== '2' && !didyoumove){
-            if(board[character.point.y +1][character.point.x]=='F'){
+            if(board[character.point.y +1][character.point.x]=='@'){
                 didyoumove=1;
                 if(!wasitadoor)
                     board[character.point.y][character.point.x]='.';
@@ -2423,7 +2647,7 @@ void play_game(room rooms[8],player character,char board[36][71],int visible[36]
                 refresh();
 
             }
-            else if(board[character.point.y +1][character.point.x]=='G'){
+            else if(board[character.point.y +1][character.point.x]=='*'){
                 didyoumove=1;
                 if(!wasitadoor)
                     board[character.point.y][character.point.x]='.';
@@ -2450,7 +2674,7 @@ void play_game(room rooms[8],player character,char board[36][71],int visible[36]
             }      
         }
        if(order== '3' && !didyoumove){
-            if(board[character.point.y +1][character.point.x +1]=='F'){
+            if(board[character.point.y +1][character.point.x +1]=='@'){
                 didyoumove=1;
                 if(!wasitadoor)
                     board[character.point.y][character.point.x]='.';
@@ -2505,7 +2729,7 @@ void play_game(room rooms[8],player character,char board[36][71],int visible[36]
                 refresh();
 
             }
-            else if(board[character.point.y +1][character.point.x +1]=='G'){
+            else if(board[character.point.y +1][character.point.x +1]=='*'){
                 didyoumove=1;
                 if(!wasitadoor)
                     board[character.point.y][character.point.x]='.';
@@ -2987,10 +3211,12 @@ void play_game(room rooms[8],player character,char board[36][71],int visible[36]
                 refresh();
             }
         }
+        
 
 
-    if(didyoumove){
+    if(didyoumove || attacked){
         time++;
+        enemyaction(board,enemy,&character);
     }
     if(time%4==2 && character.food_status==4 && character.health!=20  && WHENEATFOOD!=time){
         character.health+=4;
@@ -3000,7 +3226,7 @@ void play_game(room rooms[8],player character,char board[36][71],int visible[36]
             character.health=100;
         WHENEATFOOD=time;
     }
-    if(time%8==7  && IMSTARVING!=time && character.food_status!=1){
+    if(time%16==15  && IMSTARVING!=time && character.food_status!=1){
         character.food_status--;
         IMSTARVING=time;
     }
@@ -3101,7 +3327,59 @@ void BEGIN(int color,int difficulty,int floor,char name[]) {
     character.spell[3]=0;
     strcpy(character.equipped_weapon,"Mace");
     character.floor=1;
-    play_game(rooms,character,board,visible,room_count,floor,name);
+    enemy enemy[10];
+    //Demon
+    enemy[0].attack=3*difficulty;
+    enemy[0].health= 5;
+    enemy[0].followtype=1;
+    enemy[0].point.x=0;
+    enemy[0].point.y=0;
+    enemy[0].exist=0;
+    enemy[0].doifollow=0;
+    enemy[0].type='D';
+    enemy[1]=enemy[0];
+    //FIIIRE
+    enemy[2].attack=5*difficulty;
+    enemy[2].health=10;
+    enemy[2].followtype=1;
+    enemy[2].point.x=0;
+    enemy[2].point.y=0;
+    enemy[2].exist=0;
+    enemy[2].doifollow=0;
+    enemy[2].type='F';
+    enemy[3]=enemy[2];
+    //GIANT
+    enemy[4].attack=7*difficulty;
+    enemy[4].health=15;
+    enemy[4].followtype=2;
+    enemy[4].point.x=0;
+    enemy[4].point.y=0;
+    enemy[4].exist=0;
+    enemy[4].doifollow=0;
+    enemy[4].type='G';
+    enemy[5]=enemy[4];
+    //Snake
+    enemy[6].attack=8*difficulty;
+    enemy[6].health=20;
+    enemy[6].followtype=3;
+    enemy[6].point.x=0;
+    enemy[6].point.y=0;
+    enemy[6].exist=0;
+    enemy[6].doifollow=0;
+    enemy[6].type='S';
+    enemy[7]=enemy[6];
+    //The Undead
+    enemy[8].attack=12*difficulty;
+    enemy[8].health=30;
+    enemy[8].followtype=2;
+    enemy[8].point.x=0;
+    enemy[8].point.y=0;
+    enemy[8].exist=0;
+    enemy[8].doifollow=0;
+    enemy[8].type='U';
+    enemy[9]=enemy[8];
+    setupenemy(enemy,board,rooms,room_count);
+    play_game(rooms,character,board,visible,room_count,floor,name,enemy);
 }
 //int main() {
  //   initscr();

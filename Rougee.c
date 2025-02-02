@@ -97,24 +97,25 @@ void LoadGameMenu(char name[]){
         sleep(2);
         return;
     }
-    mvprintw(0,0,"CHOOSE WHICH SAVE FILE YOU WANT TO LOAD by pressing 1,2 or 3");
-    char savefile[100];
-    for(int i=1;i<4;i++){
-    if(fgets(savefile,sizeof(savefile),namefile)==NULL)
-        strcpy(savefile,"NOTHING IS SAVED HERE");
-    mvprintw(i,0,"%d)%s",i,savefile);
-    }
-    refresh();
-    refresh();
-    while(true){
-        int input=getch();
-        if(input=='q')
-            return;
-        if(input=='1' || input=='2'   || input=='3'){
-            loadgame(1);
+    loadgame(1);
+    // mvprintw(0,0,"CHOOSE WHICH SAVE FILE YOU WANT TO LOAD by pressing 1,2 or 3");
+    // char savefile[100];
+    // for(int i=1;i<4;i++){
+    // if(fgets(savefile,sizeof(savefile),namefile)==NULL)
+    //     strcpy(savefile,"NOTHING IS SAVED HERE");
+    // mvprintw(i,0,"%d)%s",i,savefile);
+    // }
+    // refresh();
+    // refresh();
+    // while(true){
+    //     int input=getch();
+    //     if(input=='q')
+    //         return;
+    //     if(input=='1' || input=='2'   || input=='3'){
+    //         loadgame(1);
 
-        }
-    }
+    //     }
+    // }
 }
 
 // void ScoreBoard(char name[50]){
@@ -133,15 +134,15 @@ void LoadGameMenu(char name[]){
 //         &character.key, &character.broken_key,
 //         &character.food, &character.gold,
 //         &character.difficulty,
-//         &character.weapon[0], &character.weapon[1], &character.weapon[2],
 //         &character.weapon[3], &character.weapon[4],
 //         &character.spell[0], &character.spell[1], &character.spell[2],
+//         &character.weapon[0], &character.weapon[1], &character.weapon[2],
 //         &character.floor);
 //     scores[i]=character.gold * 10;
 //     strcpy(leaderboards[i],name1);
-//     }
 //   for (int i=0; i<4; i++) {
 //         for (int j = i + 1; j < 5; j++) {
+//     }
 //             if (scores[i] < scores[j]) { 
 //                 int temp_score = scores[i];
 //                 scores[i] = scores[j];
@@ -189,7 +190,7 @@ void PreGameMenu(char name[],char password[]){
             attroff(COLOR_PAIR(1));
         if(choice==2)
             attron(COLOR_PAIR(1));
-        mvprintw(3,1,"Load Game");
+        mvprintw(3,1,"Load Last Saved Game");
         if(choice==2)
             attroff(COLOR_PAIR(1));
         if(choice==3)
