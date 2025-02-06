@@ -1496,6 +1496,7 @@ void VICTORY(char name[], player character) {
 
 
 void play_game(room rooms[8],player character,char board[36][71],int visible[36][71],int room_count,int floor,char name[],enemy enemy[]){
+    showmsg("you went a floor deeper into the dungeon",2);
     nodelay(stdscr, TRUE);
     int WHENEATFOOD=0;
     int time=0;
@@ -3798,12 +3799,8 @@ void BEGIN(int color,int difficulty,int floor,char name[]) {
     visiblesetup(visible);
     lightuproom(rooms[0],visible);
     spawnstair(board,rooms,room_count);
-    drawmap(board,visible);
-    refresh();
     character.color=color;
     character.difficulty=difficulty;
-    drawcharacter(board,character.color,x,y);
-    refresh();
     attron(A_BOLD | COLOR_PAIR(3));
     mvprintw(0,0,"YOU HAVE STARTED A GAME!");
     attroff(A_BOLD | COLOR_PAIR(3));
@@ -3877,5 +3874,9 @@ void BEGIN(int color,int difficulty,int floor,char name[]) {
     enemy[8].type='U';
     enemy[9]=enemy[8];
     setupenemy(enemy,board,rooms,room_count);
+    drawmap(board,visible);
+    refresh();
+    drawcharacter(board,character.color,x,y);
+    refresh();
     play_game(rooms,character,board,visible,room_count,floor,name,enemy);
 }
