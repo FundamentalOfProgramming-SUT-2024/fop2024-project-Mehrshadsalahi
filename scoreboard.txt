@@ -1,1 +1,6 @@
 TEST 120000
+player1 100000
+pLayer2 11200
+player3 121000
+player4 122211
+player5 10000
