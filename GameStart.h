@@ -3804,9 +3804,9 @@ void BEGIN(int color,int difficulty,int floor,char name[]) {
     character.difficulty=difficulty;
     drawcharacter(board,character.color,x,y);
     refresh();
-    attron(A_BOLD | COLOR_PAIR(2));
+    attron(A_BOLD | COLOR_PAIR(3));
     mvprintw(0,0,"YOU HAVE STARTED A GAME!");
-    attroff(A_BOLD | COLOR_PAIR(2));
+    attroff(A_BOLD | COLOR_PAIR(3));
     character.food_status=4;
     character.gold=0;
     character.food=2;

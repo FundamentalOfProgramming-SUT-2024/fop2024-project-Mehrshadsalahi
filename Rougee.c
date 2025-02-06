@@ -125,13 +125,12 @@ int compareScores(const void *a, const void *b) {
     FILE *scoreboard = fopen("scoreboard.txt", "r");
     winner winners[10];
     int count=0;
-    while (count < 10 && fscanf(scoreboard, "%s %d", winners[count].name, &winners[count].score) == 2) {
+    while (count<10 && fscanf(scoreboard, "%s %d", winners[count].name, &winners[count].score)==2) {
         count++;
     }
     fclose(scoreboard);
     qsort(winners, count, sizeof(winner), compareScores);
     clear();
-    printf("Sorted Players by Score:\n");
     char title[20];
     for (int i=0; i<count; i++) {
         if(i==0){
